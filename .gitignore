@@ -1,0 +1,11 @@
+build/
+pico_tag/
+utfcpp/
+TFT_eSPI/
+pico_i2s/
+TJpg_Decoder/
+fatfs/
+ESP8266Audio/
+sd_pico/
+pico_sdio/
+SPI_pico/
