@@ -103,6 +103,21 @@ void soft_gain(int buffsel)
 }
 #endif
 
+void change_endian()
+{
+    uint8_t *buff_8 = (uint8_t *)&i2s_buff[(int_count_i2s + 1) % 2][0];
+    uint8_t tmp[3];
+    for (int i = 0; i < i2s_buff_size * 2; i += 3)
+    {
+        tmp[0] = buff_8[i + 0];
+        // tmp[1] = buff_8[i + 1];
+        tmp[2] = buff_8[i + 2];
+        buff_8[i + 2] = tmp[0];
+        // buff_8[i + 1] = tmp[1];
+        buff_8[i + 0] = tmp[2];
+    }
+}
+
 void wav_start(uint8_t bit_num)
 {
     i2s_buff_size = i2s_buff_size_wav;
@@ -150,7 +165,6 @@ bool wav_loop()
         memset(&i2s_buff[0][0], 0, i2s_buff_size * 2);
         memset(&i2s_buff[1][0], 0, i2s_buff_size * 2);
 
-
 #ifndef NO_SOFT_VOL
         soft_gain(0);
         soft_gain(1);
@@ -163,15 +177,27 @@ bool wav_loop()
             if ((f_tell(&f_wav) + i2s_buff_size * 2) > wav_end_byte)
             {
                 f_read(&f_wav, &i2s_buff[(int_count_i2s + 1) % 2][0], (wav_end_byte - f_tell(&f_wav)), &byte_read);
+                if (bit_num_playing == 24)
+                {
+                    change_endian();
+                }
             }
             else
             {
                 f_read(&f_wav, &i2s_buff[(int_count_i2s + 1) % 2][0], i2s_buff_size * 2, &byte_read);
+                if (bit_num_playing == 24)
+                {
+                    change_endian();
+                }
             }
         }
         else
         {
             f_read(&f_wav, &i2s_buff[(int_count_i2s + 1) % 2][0], i2s_buff_size * 2, &byte_read);
+            if (bit_num_playing == 24)
+            {
+                change_endian();
+            }
         }
 
 #ifndef NO_SOFT_VOL

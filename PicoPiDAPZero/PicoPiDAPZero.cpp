@@ -253,7 +253,7 @@ void music_decoder_start()
             wav_start(pico_tag1->bits_per_sample);
         }
 
-        audio_start_seek = pico_tag1->audio_start + 2 * (pico_tag1->bits_per_sample / 24);
+        audio_start_seek = pico_tag1->audio_start;
         audio_type = wav_file;
     }
     else if (file_name.size() >= mp3.size() &&
@@ -428,7 +428,15 @@ void seek_audio()
     else
     {
         seek_point = (uint32_t)(((uint64_t)pico_tag1->audio_end - (uint64_t)pico_tag1->audio_start) * (uint64_t)playing_time_now / (uint64_t)(duration4seek * 1000));
-        seek_point += (2 * (pico_tag1->bits_per_sample / 24) - (seek_point - pico_tag1->audio_start) % (pico_tag1->channel * pico_tag1->bits_per_sample / 8)); // wav
+        if (pico_tag1->bits_per_sample == 24)
+        {
+            seek_point += (6 - (seek_point - pico_tag1->audio_start) % (pico_tag1->channel * pico_tag1->bits_per_sample / 8)); // wav
+        }
+        else
+        {
+            seek_point += (8 * (pico_tag1->bits_per_sample / 32) - (seek_point - pico_tag1->audio_start) % (pico_tag1->channel * pico_tag1->bits_per_sample / 8)); // wav
+        }
+
         if (audio_type_pre == wav_file)
         {
             wav_seek(seek_point);
@@ -452,11 +460,10 @@ int main()
     DacPlusPro_setup();
 #endif
 
-
 #ifdef DAC_DacPlusPro
-            DacPlusPro_change_bit_freq(16, 44100);
+    DacPlusPro_change_bit_freq(16, 44100);
 #else
-            si5351_set_clock(16, 44100);
+    si5351_set_clock(16, 44100);
 #endif
 
     set_sys_clock_pll(1596 * MHZ, 6, 2); // 133MHz
