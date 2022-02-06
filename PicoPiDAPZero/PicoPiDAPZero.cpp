@@ -530,6 +530,11 @@ int main()
                         rotate_count = 0xffff - 1;
                         play_start = to_ms_since_boot(get_absolute_time());
                         string music_filename = music_path + "/" + musics[music_select];
+                        if (pico_tag1)
+                        {
+                            delete pico_tag1;
+                            pico_tag1 = NULL;
+                        }
                         pico_tag1 = pico_tag_get_tag(music_filename);
                         duration = pico_tag1->duration;
                         player_screen_update = true;
@@ -565,6 +570,11 @@ int main()
                                 rotate_count = 0xffff - 1;
                                 play_start = to_ms_since_boot(get_absolute_time());
                                 string music_filename = music_path + "/" + musics[music_select];
+                                if (pico_tag1)
+                                {
+                                    delete pico_tag1;
+                                    pico_tag1 = NULL;
+                                }
                                 pico_tag1 = pico_tag_get_tag(music_filename);
                                 duration = pico_tag1->duration;
                                 player_screen_update = true;
@@ -649,6 +659,10 @@ int main()
         {
             printf("pico_tag_wait\n");
             string music_filename = music_path + "/" + musics[music_select];
+            if (pico_tag1)
+            {
+                delete pico_tag1;
+            }
             pico_tag1 = pico_tag_get_tag(music_filename);
             duration = pico_tag1->duration;
             pico_tag_wait = false;
