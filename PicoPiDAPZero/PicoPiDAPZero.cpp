@@ -217,6 +217,7 @@ void music_decoder_start()
             if (decoder)
             {
                 delete decoder;
+                decoder = NULL;
             }
             decoder = new AudioGeneratorFLAC();
         }
@@ -230,6 +231,7 @@ void music_decoder_start()
             if (decoder)
             {
                 delete decoder;
+                decoder = NULL;
             }
             decoder = new AudioGeneratorOpus();
         }
@@ -243,12 +245,14 @@ void music_decoder_start()
             if (decoder)
             {
                 delete decoder;
+                decoder = NULL;
             }
             // decoder = new AudioGeneratorWAV();
 
             if (out)
             {
                 delete out;
+                out = NULL;
             }
             wav_start(pico_tag1->bits_per_sample);
         }
@@ -264,6 +268,7 @@ void music_decoder_start()
             if (decoder)
             {
                 delete decoder;
+                decoder = NULL;
             }
             decoder = new AudioGeneratorMP3();
         }
@@ -278,6 +283,7 @@ void music_decoder_start()
             if (decoder)
             {
                 delete decoder;
+                decoder = NULL;
             }
             decoder = new AudioGeneratorAAC();
         }
@@ -301,6 +307,7 @@ void music_decoder_start()
             if (out)
             {
                 delete out;
+                out = NULL;
             }
 
 #if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
@@ -352,6 +359,7 @@ void music_decoder_start()
             if (out)
             {
                 delete out;
+                out = NULL;
             }
 
 #if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
