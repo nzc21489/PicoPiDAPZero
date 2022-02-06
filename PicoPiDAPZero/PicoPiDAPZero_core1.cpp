@@ -240,7 +240,7 @@ FRESULT scan_files(
 void init_key();
 void core1();
 
-vector<TFT_eSprite> exploler_tft(uint16_t start, uint16_t num);
+void exploler_tft(vector<TFT_eSprite> *sprite_exploler_tft, uint16_t start, uint16_t num);
 void system_tft();
 
 #if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
@@ -482,9 +482,9 @@ void gpio_callback(uint gpio, uint32_t events)
     key_interrupt = true;
 }
 
-void player_tft(int num, TFT_eSprite &sprite_player_tft)
+void player_tft(int num, TFT_eSprite *sprite_player_tft)
 {
-    sprite_player_tft.fillScreen(TFT_BLACK);
+    sprite_player_tft->fillScreen(TFT_BLACK);
     font_larger_than_tft[num] = false;
     uint16_t sprite_width = 0;
     vector<array<char, 32>> bmp_array_vector;
@@ -539,9 +539,9 @@ void player_tft(int num, TFT_eSprite &sprite_player_tft)
         sprite_width = tft.width();
     }
 
-    sprite_player_tft.deleteSprite();
-    sprite_player_tft.setColorDepth(1);
-    sprite_player_tft.createSprite(sprite_width, 16);
+    sprite_player_tft->deleteSprite();
+    sprite_player_tft->setColorDepth(1);
+    sprite_player_tft->createSprite(sprite_width, 16);
     unsigned char bmp[32];
 
     uint16_t x_sprite = 0;
@@ -553,12 +553,12 @@ void player_tft(int num, TFT_eSprite &sprite_player_tft)
         }
         if (width_is_16[j])
         {
-            draw_font(&sprite_player_tft, bmp, false, x_sprite);
+            draw_font(sprite_player_tft, bmp, false, x_sprite);
             x_sprite += 16;
         }
         else
         {
-            draw_font(&sprite_player_tft, bmp, true, x_sprite);
+            draw_font(sprite_player_tft, bmp, true, x_sprite);
             x_sprite += 8;
         }
     }
@@ -630,7 +630,7 @@ void playing_time_update()
 
     player_screen[0] = playing_time + music_file_data;
 
-    player_tft(0, *spr_player[0]);
+    player_tft(0, *spr_player);
 
     if (display_on)
     {
@@ -662,7 +662,7 @@ void playerScreen()
 
     for (int i = 0; i < 4; i++)
     {
-        player_tft(i, *spr_player[i]);
+        player_tft(i, spr_player[i]);
         spr_player[i]->pushSprite(0, album_art_height + status_bar_height + 16 * i);
     }
 
@@ -839,16 +839,16 @@ void home_select()
         {
             if (get_directory_list->name_list.size() == 0) // empty
             {
-                sprite_exploler = exploler_tft(0, 1);
+                exploler_tft(&sprite_exploler, 0, 1);
             }
             else
             {
-                sprite_exploler = exploler_tft(0, get_directory_list->name_list.size());
+                exploler_tft(&sprite_exploler, 0, get_directory_list->name_list.size());
             }
         }
         else
         {
-            sprite_exploler = exploler_tft(0, exploler_row_max - 1);
+            exploler_tft(&sprite_exploler, 0, exploler_row_max - 1);
         }
         invert_sprite(&sprite_exploler[0]);
         for (int i = 0; i < sprite_exploler.size(); i++)
@@ -899,9 +899,10 @@ void system_tft()
     }
 }
 
-vector<TFT_eSprite> exploler_tft(uint16_t start, uint16_t num)
+void exploler_tft(vector<TFT_eSprite> *sprite_exploler_tft, uint16_t start, uint16_t num)
 {
-    vector<TFT_eSprite> sprite_exploler_tft(num, TFT_eSprite(&tft));
+    sprite_exploler_tft->resize(0, TFT_eSprite(&tft));
+    sprite_exploler_tft->resize(num, TFT_eSprite(&tft));
     for (int i = start; i < start + num; i++)
     {
         uint16_t sprite_width = 0;
@@ -957,8 +958,8 @@ vector<TFT_eSprite> exploler_tft(uint16_t start, uint16_t num)
             sprite_width = tft.width();
         }
 
-        sprite_exploler_tft[i - start].setColorDepth(1);
-        sprite_exploler_tft[i - start].createSprite(sprite_width, 16);
+        (*sprite_exploler_tft)[i - start].setColorDepth(1);
+        (*sprite_exploler_tft)[i - start].createSprite(sprite_width, 16);
         unsigned char bmp[32];
 
         uint16_t x_sprite = 0;
@@ -970,12 +971,12 @@ vector<TFT_eSprite> exploler_tft(uint16_t start, uint16_t num)
             }
             if (width_is_16[j])
             {
-                draw_font(&sprite_exploler_tft[i - start], bmp, false, x_sprite);
+                draw_font(&(*sprite_exploler_tft)[i - start], bmp, false, x_sprite);
                 x_sprite += 16;
             }
             else
             {
-                draw_font(&sprite_exploler_tft[i - start], bmp, true, x_sprite);
+                draw_font(&(*sprite_exploler_tft)[i - start], bmp, true, x_sprite);
                 x_sprite += 8;
             }
         }
@@ -1009,7 +1010,6 @@ vector<TFT_eSprite> exploler_tft(uint16_t start, uint16_t num)
             font_pixel[i - start] = x_sprite;
         }
     }
-    return sprite_exploler_tft;
 }
 
 void exploler_up()
@@ -1052,7 +1052,7 @@ void exploler_up()
                 player_select--;
                 exploler_select = 0;
                 vector<TFT_eSprite> sprite_tmp(1, TFT_eSprite(&tft));
-                sprite_tmp = exploler_tft(player_select, 1);
+                exploler_tft(&sprite_tmp, player_select, 1);
                 sprite_exploler[0].deleteSprite();
                 sprite_exploler[0].createSprite(sprite_tmp[0].width(), sprite_tmp[0].height());
                 sprite_exploler[0].fillScreen(TFT_BLACK);
@@ -1104,7 +1104,7 @@ void exploler_down()
                 player_select++;
                 exploler_select = sprite_exploler.size() - 1;
                 vector<TFT_eSprite> sprite_tmp(1, TFT_eSprite(&tft));
-                sprite_tmp = exploler_tft(player_select, 1);
+                exploler_tft(&sprite_tmp, player_select, 1);
                 sprite_exploler[sprite_exploler.size() - 1].deleteSprite();
                 sprite_exploler[sprite_exploler.size() - 1].createSprite(sprite_tmp[0].width(), sprite_tmp[0].height());
                 sprite_exploler[sprite_exploler.size() - 1].fillScreen(TFT_BLACK);
@@ -1149,16 +1149,16 @@ void exploler_in()
         {
             if (get_directory_list->name_list.size() == 0)
             {
-                sprite_exploler = exploler_tft(0, 1);
+                exploler_tft(&sprite_exploler, 0, 1);
             }
             else
             {
-                sprite_exploler = exploler_tft(0, get_directory_list->name_list.size());
+                exploler_tft(&sprite_exploler, 0, get_directory_list->name_list.size());
             }
         }
         else
         {
-            sprite_exploler = exploler_tft(0, exploler_row_max - 1);
+            exploler_tft(&sprite_exploler, 0, exploler_row_max - 1);
         }
         invert_sprite(&sprite_exploler[0]);
         for (int i = 0; i < sprite_exploler.size(); i++)
@@ -1289,11 +1289,11 @@ void exploer_out()
 
         if (get_directory_list->name_list.size() < exploler_row_max)
         {
-            sprite_exploler = exploler_tft(0, get_directory_list->name_list.size());
+            exploler_tft(&sprite_exploler, 0, get_directory_list->name_list.size());
         }
         else
         {
-            sprite_exploler = exploler_tft(player_select - exploler_select, exploler_row_max - 1);
+            exploler_tft(&sprite_exploler, player_select - exploler_select, exploler_row_max - 1);
         }
         invert_sprite(&sprite_exploler[exploler_select]);
 
@@ -1831,14 +1831,14 @@ void core1()
                     player_screen_rotate_num = 1;
 
                     tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
-                    sprite_exploler = exploler_tft(0, 0);
-                    if (get_directory_list->name_list.size() < 15)
+                    exploler_tft(&sprite_exploler, 0, 0);
+                    if (get_directory_list->name_list.size() < exploler_row_max)
                     {
-                        sprite_exploler = exploler_tft(0, get_directory_list->name_list.size());
+                        exploler_tft(&sprite_exploler, 0, get_directory_list->name_list.size());
                     }
                     else
                     {
-                        sprite_exploler = exploler_tft(0, 14);
+                        exploler_tft(&sprite_exploler, 0, (exploler_row_max - 1));
                     }
                     invert_sprite(&sprite_exploler[exploler_select]);
                     for (int i = 0; i < sprite_exploler.size(); i++)
@@ -1992,14 +1992,14 @@ void core1()
                     player_screen_rotate_num = 1;
 
                     tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
-                    sprite_exploler = exploler_tft(0, 0);
-                    if (get_directory_list->name_list.size() < 15)
+                    exploler_tft(&sprite_exploler, 0, 0);
+                    if (get_directory_list->name_list.size() < exploler_row_max)
                     {
-                        sprite_exploler = exploler_tft(0, get_directory_list->name_list.size());
+                        exploler_tft(&sprite_exploler, 0, get_directory_list->name_list.size());
                     }
                     else
                     {
-                        sprite_exploler = exploler_tft(0, 14);
+                        exploler_tft(&sprite_exploler, 0, (exploler_row_max - 1));
                     }
                     invert_sprite(&sprite_exploler[exploler_select]);
                     for (int i = 0; i < sprite_exploler.size(); i++)
