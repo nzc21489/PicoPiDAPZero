@@ -339,11 +339,11 @@ void album_art(string file_name, bool embedded, int art_offset = 0, int art_size
     uint16_t w = 0, h = 0;
     if (embedded)
     {
-        TJpgDec.getSdAudioJpgSize(&w, &h, file_name.c_str(), art_offset, art_size);
+        TJpgDec->getSdAudioJpgSize(&w, &h, file_name.c_str(), art_offset, art_size);
     }
     else
     {
-        TJpgDec.getSdJpgSize(&w, &h, file_name.c_str());
+        TJpgDec->getSdJpgSize(&w, &h, file_name.c_str());
     }
 
     if (w > 0)
@@ -351,22 +351,22 @@ void album_art(string file_name, bool embedded, int art_offset = 0, int art_size
         if (w < album_art_width * 2)
         {
             jpeg_scale = 1;
-            TJpgDec.setJpgScale(jpeg_scale);
+            TJpgDec->setJpgScale(jpeg_scale);
         }
         else if (w < album_art_width * 4)
         {
             jpeg_scale = 2;
-            TJpgDec.setJpgScale(jpeg_scale);
+            TJpgDec->setJpgScale(jpeg_scale);
         }
         else if (w < album_art_width * 8)
         {
             jpeg_scale = 4;
-            TJpgDec.setJpgScale(jpeg_scale);
+            TJpgDec->setJpgScale(jpeg_scale);
         }
         else
         {
             jpeg_scale = 8;
-            TJpgDec.setJpgScale(jpeg_scale);
+            TJpgDec->setJpgScale(jpeg_scale);
         }
 
         if (w >= h)
@@ -382,11 +382,11 @@ void album_art(string file_name, bool embedded, int art_offset = 0, int art_size
 
         if (embedded)
         {
-            TJpgDec.drawSdAudioJpg(0, 0, file_name.c_str(), art_offset, art_size);
+            TJpgDec->drawSdAudioJpg(0, 0, file_name.c_str(), art_offset, art_size);
         }
         else
         {
-            TJpgDec.drawSdJpg(0, 0, file_name.c_str());
+            TJpgDec->drawSdJpg(0, 0, file_name.c_str());
         }
     }
 }
@@ -1474,8 +1474,6 @@ void core1()
     adc_select_input(3);
 
     // tft
-    TJpgDec.setJpgScale(8);
-    TJpgDec.setCallback(tft_output);
     tft.init();
     font_bmp = new bmp_shinonome16();
     tft.setRotation(1);
@@ -2217,12 +2215,19 @@ void draw_album_art()
 {
     bool album_art_written = false;
 
+    if (!TJpgDec)
+    {
+        TJpgDec = new TJpg_Decoder();
+    }
+    TJpgDec->setJpgScale(8);
+    TJpgDec->setCallback(tft_output);
+
     if (jpeg_file_name != "")
     {
         uint16_t w = 0, h = 0;
 
-        TJpgDec.setJpgScale(8);
-        TJpgDec.getSdJpgSize(&w, &h, jpeg_file_name.c_str());
+        TJpgDec->setJpgScale(8);
+        TJpgDec->getSdJpgSize(&w, &h, jpeg_file_name.c_str());
 
         w_jpeg = w;
         h_jpeg = h;
@@ -2244,13 +2249,19 @@ void draw_album_art()
         uint32_t art_offset = get_cover_offset(music_filename, pico_tag1->cover_art_offset);
         uint32_t art_size = pico_tag1->cover_art_size - (art_offset - pico_tag1->cover_art_offset);
 
-        TJpgDec.setJpgScale(8);
+        TJpgDec->setJpgScale(8);
 
-        TJpgDec.getSdAudioJpgSize(&w, &h, music_filename.c_str(), art_offset, art_size);
+        TJpgDec->getSdAudioJpgSize(&w, &h, music_filename.c_str(), art_offset, art_size);
 
         album_art(music_filename, true, art_offset, art_size);
 
         album_art_write = false;
     }
     is_album_art_drawn = true;
+
+    if (TJpgDec)
+    {
+        delete TJpgDec;
+        TJpgDec = NULL;
+    }
 }
