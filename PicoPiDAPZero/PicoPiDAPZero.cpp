@@ -233,7 +233,15 @@ void music_decoder_start()
                 delete decoder;
                 decoder = NULL;
             }
+
+            if (out)
+            {
+                delete out;
+            }
+
             decoder = new AudioGeneratorOpus();
+            buffer_count = (1024 * 14);
+            out = new AudioOutputI2S(buffer_count);
         }
         audio_type = opus_file;
     }
