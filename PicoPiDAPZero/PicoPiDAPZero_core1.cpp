@@ -133,7 +133,7 @@ string system_string[7] = {
     "",
 #endif
     "",
-    "         Version 0.1.1",
+    "         Version 0.1.2",
     "",
     ""};
 
