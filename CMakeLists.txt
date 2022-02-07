@@ -11,7 +11,7 @@ set(PICO_GCC_TRIPLE "")
 
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Os -Wl,-s -ffunction-sections -fdata-sections -ffat-lto-objects")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os -Wl,-s -ffunction-sections -fdata-sections -fno-threadsafe-statics -ffat-lto-objects")
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wl,--gc-sections --use-linker-plugin")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wl,--gc-sections --use-linker-plugin -Wl,--print-memory-usage")
 
 set(INCLUDE_DIR
   ${PROJECT_SOURCE_DIR}/PicoPiDAPZero
