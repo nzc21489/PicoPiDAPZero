@@ -220,6 +220,8 @@ void wav_stop()
         f_close(&f_wav);
     }
     play_stop = true;
+    memset(&i2s_buff[0][0], 0, (i2s_buff_size + 4) * 2);
+    memset(&i2s_buff[1][0], 0, (i2s_buff_size + 4) * 2);
 }
 
 void wav_seek(uint32_t seek_point)
