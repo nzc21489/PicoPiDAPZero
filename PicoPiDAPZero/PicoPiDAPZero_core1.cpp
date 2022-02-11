@@ -176,6 +176,7 @@ TFT_eSPI tft = TFT_eSPI();
 TFT_eSprite *spr_player[4];
 TFT_eSprite spr_status_bar[2] = {TFT_eSprite(&tft), TFT_eSprite(&tft)}; // 0:left, 1:right
 #define status_bar_right_length 93                                      //15 * 2 + 9 * (3 + 4)
+#define status_bar_left_length (TFT_WIDTH - status_bar_right_length)
 TFT_eSprite *spr_home[5];
 TFT_eSprite *spr_system[7];
 vector<TFT_eSprite> sprite_explorer;
@@ -213,6 +214,8 @@ bool is_album_art_drawn = false;
 string jpeg_file_name = "";
 
 string music_file_data = "";
+
+volatile bool sd_status = true;
 
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();
@@ -715,6 +718,12 @@ void status_bar_left_update(uint8_t play_mode)
         spr_status_bar[status_bar_left].print("h"); //pause
     }
     spr_status_bar[status_bar_left].unloadFont();
+    if (!sd_status)
+    {
+        spr_status_bar[status_bar_left].loadFont(num_font);
+        spr_status_bar[status_bar_left].print("  SD Error");
+        spr_status_bar[status_bar_left].unloadFont();
+    }
     spr_status_bar[status_bar_left].pushSprite(0, 0);
 }
 
@@ -1502,7 +1511,7 @@ void core1()
     {
         spr_status_bar[i].setColorDepth(1);
     }
-    spr_status_bar[0].createSprite(status_bar_height, status_bar_height);
+    spr_status_bar[0].createSprite(status_bar_left_length, status_bar_height);
     spr_status_bar[1].createSprite(status_bar_right_length, status_bar_height);
 
     status_bar_left_update(0);

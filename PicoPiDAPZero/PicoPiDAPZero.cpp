@@ -70,7 +70,7 @@ void change_volume(uint8_t vol)
 }
 #endif
 
-void init_sd()
+bool init_sd()
 {
     FRESULT fr;
     fr = f_opendir(&dir, (pmp_path.c_str()));
@@ -124,7 +124,12 @@ void init_sd()
     {
         FRESULT res;
         res = f_mkdir(pmp_path.c_str());
+        if (res != FR_OK)
+        {
+            return false;
+        }
     }
+    return true;
 }
 
 void music_decoder_start()
@@ -502,7 +507,11 @@ int main()
 
     if (gpio_get(buttons_pin[sd_init_skip_button1]) && gpio_get(buttons_pin[sd_init_skip_button2]))
     {
-        init_sd();
+        if (!init_sd())
+        {
+            printf("init_sd error\n");
+            sd_status = false;
+        }
     }
     change_volume(volume);
 

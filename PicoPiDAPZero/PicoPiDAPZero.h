@@ -148,6 +148,8 @@ extern uint32_t sampling_rate_pre;
 #define sd_init_skip_button1 6
 #define sd_init_skip_button2 3
 
+extern volatile bool sd_status;
+
 enum file_type
 {
     wav_file,
