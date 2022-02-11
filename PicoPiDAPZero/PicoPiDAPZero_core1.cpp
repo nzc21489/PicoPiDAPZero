@@ -614,6 +614,12 @@ void playing_time_update()
     {
         playing_time_now = (int)((to_ms_since_boot(get_absolute_time()) - play_start) / 1000);
     }
+
+    if (playing_time_now < 0)
+    {
+        playing_time_now = 0;
+    }
+
     stringstream p_time;
     p_time << (int)(playing_time_now / 60) << ":" << setfill('0') << right << setw(2) << playing_time_now % 60 << " / " << (int)(duration / 60) << ":" << setfill('0') << right << setw(2) << duration % 60;
     string playing_time = p_time.str();
