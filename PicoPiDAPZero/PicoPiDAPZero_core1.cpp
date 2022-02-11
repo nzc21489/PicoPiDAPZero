@@ -214,7 +214,7 @@ string jpeg_file_name = "";
 
 string music_file_data = "";
 
-void status_bar_left_update();
+void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();
 
 void get_v_bat();
@@ -1805,6 +1805,7 @@ void core1()
                         play_update = to_ms_since_boot(get_absolute_time());
                         rotate_count = 0xffff - 1;
                         player_screen_rotate_num = 1;
+                        status_bar_left_update(1);
                         if (player_screen_mode)
                         {
                             if (!is_album_art_drawn)
@@ -1973,6 +1974,7 @@ void core1()
 
                         rotate_count = 0xffff - 1;
                         player_screen_rotate_num = 1;
+                        status_bar_left_update(1);
                         if (player_screen_mode)
                         {
                             if (!is_album_art_drawn)
