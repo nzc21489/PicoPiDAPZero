@@ -606,13 +606,13 @@ void get_music_file_data()
 void playing_time_update()
 {
     int playing_time_now;
-    if (pause)
+    if (pause || !music_playing)
     {
-        playing_time_now = (int)((pause_time - play_start) / 1000);
+        playing_time_now = (int)(((long)pause_time - (long)play_start) / 1000);
     }
     else
     {
-        playing_time_now = (int)((to_ms_since_boot(get_absolute_time()) - play_start) / 1000);
+        playing_time_now = (int)(((int)to_ms_since_boot(get_absolute_time()) - play_start) / 1000);
     }
 
     if (playing_time_now < 0)

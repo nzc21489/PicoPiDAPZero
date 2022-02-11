@@ -159,6 +159,9 @@ enum file_type
 };
 extern volatile file_type audio_type_pre;
 
+void status_bar_left_update(uint8_t play_mode);
+void status_bar_right_update();
+
 extern void change_volume(uint8_t vol);
 extern void cs4398_setup();
 extern void init_key();

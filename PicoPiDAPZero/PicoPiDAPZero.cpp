@@ -550,6 +550,10 @@ int main()
                     }
                     else
                     {
+                        if (music_playing){
+                            pause_time = to_ms_since_boot(get_absolute_time());
+                            status_bar_left_update(0);
+                        }
                         music_playing = false;
                         pause = false;
                     }
@@ -590,6 +594,10 @@ int main()
                             }
                             else
                             {
+                                if (music_playing){
+                                    pause_time = to_ms_since_boot(get_absolute_time());
+                                    status_bar_left_update(0);
+                                }
                                 music_playing = false;
                                 pause = false;
                             }
