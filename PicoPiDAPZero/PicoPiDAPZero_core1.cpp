@@ -1800,7 +1800,7 @@ void core1()
                         music_select--;
                     }
 
-                    string file_name = get_directory_list->name_list[music_select];
+                    string file_name = musics[music_select];
                     if (is_audio_file(file_name))
                     {
                         pico_tag_wait = true;
@@ -1968,7 +1968,7 @@ void core1()
                     {
                         music_select = 0;
                     }
-                    string file_name = get_directory_list->name_list[music_select];
+                    string file_name = musics[music_select];
                     if (is_audio_file(file_name))
                     {
                         pico_tag_wait = true;
