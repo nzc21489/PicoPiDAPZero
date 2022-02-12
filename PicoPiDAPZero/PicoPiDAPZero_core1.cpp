@@ -188,7 +188,7 @@ array<string, 4> player_screen;
 uint32_t reboot_count = 0x7fffffff;
 bool system_first_time = false;
 
-uint8_t brightness = 100;
+static const uint8_t brightness[5] = {100, 45, 42, 38, 35};
 
 uint16_t w_jpeg = 0, h_jpeg = 0;
 
@@ -205,7 +205,7 @@ enum status_bar_type
 
 #define explorer_row_max 15
 
-#define brightness_step 20
+int brightness_select = 0;
 
 #define seek_step 1000
 
@@ -1656,7 +1656,7 @@ void core1()
                 display_on = !display_on;
                 if (display_on)
                 {
-                    pwm_set_gpio_level(TFT_BL, brightness);
+                    pwm_set_gpio_level(TFT_BL, brightness[brightness_select]);
                     if (player_screen_mode)
                     {
                         playing_time_update();
@@ -1722,16 +1722,12 @@ void core1()
             }
             else if ((key_num == 3) && (key_count == 0)) // change brightness
             {
-                brightness -= brightness_step;
-                if (brightness < 0)
+                brightness_select++;
+                if (brightness_select >= (sizeof(brightness) / sizeof(brightness[0])))
                 {
-                    brightness = 0;
+                    brightness_select = 0;
                 }
-                if (brightness == 0)
-                {
-                    brightness = 100;
-                }
-                pwm_set_gpio_level(TFT_BL, brightness);
+                pwm_set_gpio_level(TFT_BL, brightness[brightness_select]);
             }
             else if ((key_num == 4) && key_long) // seek time
             {
