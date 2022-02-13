@@ -697,6 +697,7 @@ int main()
         {
             printf("album art\n");
             draw_album_art();
+            album_art_write = false;
         }
 
         music_playing_pre = music_playing;

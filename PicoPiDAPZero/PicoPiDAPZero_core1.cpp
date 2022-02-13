@@ -209,13 +209,13 @@ int brightness_select = 0;
 
 #define seek_step 1000
 
-bool is_album_art_drawn = false;
-
 string jpeg_file_name = "";
 
 string music_file_data = "";
 
 volatile bool sd_status = true;
+
+volatile int jpeg_file_size_pre = 0;
 
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();
@@ -1813,13 +1813,11 @@ void core1()
                         status_bar_left_update(1);
                         if (player_screen_mode)
                         {
-                            if (!is_album_art_drawn)
+                            album_art_write = true;
+                            while (album_art_write)
                             {
-                                album_art_write = true;
-                                while (album_art_write)
-                                {
-                                }
                             }
+
                             playerScreen();
                         }
                     }
@@ -1982,13 +1980,11 @@ void core1()
                         status_bar_left_update(1);
                         if (player_screen_mode)
                         {
-                            if (!is_album_art_drawn)
+                            album_art_write = true;
+                            while (album_art_write)
                             {
-                                album_art_write = true;
-                                while (album_art_write)
-                                {
-                                }
                             }
+
                             playerScreen();
                         }
                     }
@@ -2102,7 +2098,7 @@ void core1()
                     player_screen_rotate_num = 1;
                     tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
                     playerScreen();
-                    is_album_art_drawn = false;
+                    jpeg_file_size_pre = 0;
                 }
                 else
                 {
@@ -2211,13 +2207,11 @@ void core1()
 
         if (player_screen_mode && player_screen_update)
         {
-            if (!is_album_art_drawn)
+            album_art_write = true;
+            while (album_art_write)
             {
-                album_art_write = true;
-                while (album_art_write)
-                {
-                }
             }
+
             player_screen_update = false;
             playerScreen();
         }
@@ -2226,7 +2220,7 @@ void core1()
 
 void draw_album_art()
 {
-    bool album_art_written = false;
+    volatile uint32_t jpeg_file_size = 0;
 
     if (!TJpgDec)
     {
@@ -2239,42 +2233,46 @@ void draw_album_art()
     {
         uint16_t w = 0, h = 0;
 
-        TJpgDec->setJpgScale(8);
-        TJpgDec->getSdJpgSize(&w, &h, jpeg_file_name.c_str());
-
-        w_jpeg = w;
-        h_jpeg = h;
-
-        if (w != 0)
+        FIL file_jpeg;
+        fr = f_open(&file_jpeg, jpeg_file_name.c_str(), FA_READ | FA_OPEN_EXISTING);
+        if (fr == FR_OK)
         {
-            album_art(jpeg_file_name, false);
+            jpeg_file_size = f_size(&file_jpeg);
+            f_close(&file_jpeg);
+        }
 
-            album_art_write = false;
+        if (jpeg_file_size != jpeg_file_size_pre)
+        {
+            TJpgDec->getSdJpgSize(&w, &h, jpeg_file_name.c_str());
 
-            album_art_written = true;
+            w_jpeg = w;
+            h_jpeg = h;
+
+            if (w != 0)
+            {
+                album_art(jpeg_file_name, false);
+            }
         }
     }
-
-    if (!album_art_written)
+    else
     {
         uint16_t w = 0, h = 0;
         string music_filename = music_path + "/" + musics[music_select];
         uint32_t art_offset = get_cover_offset(music_filename, pico_tag1->cover_art_offset);
-        uint32_t art_size = pico_tag1->cover_art_size - (art_offset - pico_tag1->cover_art_offset);
+        jpeg_file_size = pico_tag1->cover_art_size - (art_offset - pico_tag1->cover_art_offset);
 
-        TJpgDec->setJpgScale(8);
-
-        TJpgDec->getSdAudioJpgSize(&w, &h, music_filename.c_str(), art_offset, art_size);
-
-        album_art(music_filename, true, art_offset, art_size);
-
-        album_art_write = false;
+        if (jpeg_file_size != jpeg_file_size_pre)
+        {
+            TJpgDec->getSdAudioJpgSize(&w, &h, music_filename.c_str(), art_offset, jpeg_file_size);
+            album_art(music_filename, true, art_offset, jpeg_file_size);
+        }
     }
-    is_album_art_drawn = true;
 
     if (TJpgDec)
     {
         delete TJpgDec;
         TJpgDec = NULL;
     }
+
+    jpeg_file_size_pre = jpeg_file_size;
 }
