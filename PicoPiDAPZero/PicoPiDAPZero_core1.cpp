@@ -1219,6 +1219,7 @@ void explorer_in()
             while (pico_tag_wait)
             {
             }
+            jpeg_file_size_pre = 0;
             album_art_write = true;
             while (album_art_write)
             {
