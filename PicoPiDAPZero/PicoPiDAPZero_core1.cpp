@@ -1320,6 +1320,29 @@ void exploer_out()
     }
 }
 
+void player_screen_to_explorer()
+{
+    player_screen_mode = false;
+    rotate_count = 0xffff - 1;
+    player_screen_rotate_num = 1;
+
+    tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
+    explorer_tft(&sprite_explorer, 0, 0);
+    if (get_directory_list->name_list.size() < explorer_row_max)
+    {
+        explorer_tft(&sprite_explorer, 0, get_directory_list->name_list.size());
+    }
+    else
+    {
+        explorer_tft(&sprite_explorer, player_select - explorer_select, (explorer_row_max - 1));
+    }
+    invert_sprite(&sprite_explorer[explorer_select]);
+    for (int i = 0; i < sprite_explorer.size(); i++)
+    {
+        sprite_explorer[i].pushSprite(0, status_bar_height + 16 * i);
+    }
+}
+
 FRESULT scan_files_to_string(
     char *path /* Start node to be scanned (***also used as work area***) */
 )
@@ -1835,25 +1858,7 @@ void core1()
             {
                 if (player_screen_mode) // go back
                 {
-                    player_screen_mode = false;
-                    rotate_count = 0xffff - 1;
-                    player_screen_rotate_num = 1;
-
-                    tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
-                    explorer_tft(&sprite_explorer, 0, 0);
-                    if (get_directory_list->name_list.size() < explorer_row_max)
-                    {
-                        explorer_tft(&sprite_explorer, 0, get_directory_list->name_list.size());
-                    }
-                    else
-                    {
-                        explorer_tft(&sprite_explorer, 0, (explorer_row_max - 1));
-                    }
-                    invert_sprite(&sprite_explorer[explorer_select]);
-                    for (int i = 0; i < sprite_explorer.size(); i++)
-                    {
-                        sprite_explorer[i].pushSprite(0, status_bar_height + 16 * i);
-                    }
+                    player_screen_to_explorer();
                 }
             }
             else if ((key_num_pre == 5) && (key_num >= (num_keys + 1)) && key_long_pre)
@@ -1995,25 +2000,7 @@ void core1()
             {
                 if (player_screen_mode)
                 {
-                    player_screen_mode = false;
-                    rotate_count = 0xffff - 1;
-                    player_screen_rotate_num = 1;
-
-                    tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
-                    explorer_tft(&sprite_explorer, 0, 0);
-                    if (get_directory_list->name_list.size() < explorer_row_max)
-                    {
-                        explorer_tft(&sprite_explorer, 0, get_directory_list->name_list.size());
-                    }
-                    else
-                    {
-                        explorer_tft(&sprite_explorer, 0, (explorer_row_max - 1));
-                    }
-                    invert_sprite(&sprite_explorer[explorer_select]);
-                    for (int i = 0; i < sprite_explorer.size(); i++)
-                    {
-                        sprite_explorer[i].pushSprite(0, status_bar_height + 16 * i);
-                    }
+                    player_screen_to_explorer();
                 }
                 else
                 {
