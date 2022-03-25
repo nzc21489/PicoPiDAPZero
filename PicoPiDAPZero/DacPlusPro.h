@@ -32,6 +32,8 @@
 #define vol_max 0b00110000
 #define vol_min 0b11111111
 
+extern uint8_t DacPlusPro_filter;
+
 extern void DacPlusPro_setup();
 // extern void DacPlusPro_mute();
 // extern void DacPlusPro_unmute();

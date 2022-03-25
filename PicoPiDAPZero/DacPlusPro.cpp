@@ -29,6 +29,8 @@
 
 #define i2c_port_DacPlusPro i2c1
 
+uint8_t DacPlusPro_filter = 1;
+
 int send_i2c(uint8_t reg, uint8_t value)
 {
     uint8_t reg_data[2];
@@ -101,6 +103,9 @@ void DacPlusPro_setup()
     send_i2c(36, 0b0);
 
     change_volume_DacPlusPro(vol_min);
+
+    // digital filter
+    send_i2c(43, DacPlusPro_filter);
 
     // sync request ?
     send_i2c(19, 0b10001);

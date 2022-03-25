@@ -478,6 +478,19 @@ int main()
 #endif
 
 #ifdef DAC_DacPlusPro
+    init_key();
+    if (!gpio_get(buttons_pin[1]))
+    {
+        DacPlusPro_filter = 2;
+    }
+    else if (!gpio_get(buttons_pin[5]))
+    {
+        DacPlusPro_filter = 3;
+    }
+    else if (!gpio_get(buttons_pin[7]))
+    {
+        DacPlusPro_filter = 7;
+    }
     DacPlusPro_setup();
 #endif
 

@@ -724,6 +724,13 @@ void status_bar_left_update(uint8_t play_mode)
         spr_status_bar[status_bar_left].print("  SD Error");
         spr_status_bar[status_bar_left].unloadFont();
     }
+
+#ifdef DAC_DacPlusPro
+    spr_status_bar[status_bar_left].loadFont(num_font);
+    spr_status_bar[status_bar_left].print("  ");
+    spr_status_bar[status_bar_left].print(DacPlusPro_filter);
+    spr_status_bar[status_bar_left].unloadFont();
+#endif
     spr_status_bar[status_bar_left].pushSprite(0, 0);
 }
 
