@@ -125,17 +125,9 @@ volatile bool display_on = true;
 string information_string[7] = {
     "",
     "        Pico Pi DAP Zero",
-#if defined(DAC_CS4398)
-    "             CS4398",
-#elif defined(DAC_Zero_HAT_DAC_CS4398)
-    "       Zero HAT DAC CS4398",
-#elif defined(DAC_DacPlusPro)
-    "           DacPlusPro",
-#else
+    dac_picopidap_zero,
     "",
-#endif
-    "",
-    "         Version 0.1.6",
+    version_picopidap_zero,
     "",
     ""};
 
