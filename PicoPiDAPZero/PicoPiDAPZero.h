@@ -88,6 +88,8 @@
 #include "DacPlusPro.h"
 #endif
 
+#include "version_picopidap_zero.h"
+
 extern FATFS FatFs;
 extern FIL Fil;
 
