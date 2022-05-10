@@ -122,7 +122,7 @@ volatile bool keypad = false;
 
 volatile bool display_on = true;
 
-string system_string[7] = {
+string information_string[7] = {
     "",
     "        Pico Pi DAP Zero",
 #if defined(DAC_CS4398)
@@ -180,7 +180,7 @@ TFT_eSprite spr_status_bar[2] = {TFT_eSprite(&tft), TFT_eSprite(&tft)}; // 0:lef
 #define status_bar_right_length 93                                      //15 * 2 + 9 * (3 + 4)
 #define status_bar_left_length (TFT_WIDTH - status_bar_right_length)
 TFT_eSprite *spr_home[5];
-TFT_eSprite *spr_system[7];
+TFT_eSprite *spr_information[7];
 vector<TFT_eSprite> sprite_explorer;
 
 bmp_shinonome16 *font_bmp;
@@ -248,7 +248,7 @@ void init_key();
 void core1();
 
 void explorer_tft(vector<TFT_eSprite> *sprite_explorer_tft, uint16_t start, uint16_t num);
-void system_tft();
+void information_tft();
 
 #if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
 void change_volume(uint8_t vol)
@@ -887,43 +887,43 @@ void home_select()
         system_first_time = true;
         reboot_count = 0x7fffffff;
         get_v_bat_2();
-        system_string[6] = "         Bat = " + v_bat_string;
-        system_tft();
+        information_string[6] = "         Bat = " + v_bat_string;
+        information_tft();
         system_bat_time = to_ms_since_boot(get_absolute_time());
     }
     else if (player_mode == usb_dac)
     {
         usb_dac_mode = true;
-        system_string[3] = "             USB-DAC";
-        system_string[4] = "";
-        system_string[5] = "";
+        information_string[3] = "             USB-DAC";
+        information_string[4] = "";
+        information_string[5] = "";
         system_bat_time = to_ms_since_boot(get_absolute_time());
         get_v_bat();
         volume = 100;
         status_bar_right_update();
         status_bar_left_update(false);
         tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
-        system_tft();
+        information_tft();
     }
 }
 
-void system_tft()
+void information_tft()
 {
-    for (volatile int i = 0; i < (sizeof(system_string) / sizeof(system_string[0])); i++)
+    for (volatile int i = 0; i < (sizeof(information_string) / sizeof(information_string[0])); i++)
     {
-        if (!spr_system[i])
+        if (!spr_information[i])
         {
-            spr_system[i] = new TFT_eSprite(&tft);
-            spr_system[i]->setColorDepth(1);
-            spr_system[i]->createSprite(tft.width(), 16);
+            spr_information[i] = new TFT_eSprite(&tft);
+            spr_information[i]->setColorDepth(1);
+            spr_information[i]->createSprite(tft.width(), 16);
         }
 
-        spr_system[i]->fillScreen(TFT_BLACK);
+        spr_information[i]->fillScreen(TFT_BLACK);
 
-        for (int j = 0; j < system_string[i].length(); j++)
+        for (int j = 0; j < information_string[i].length(); j++)
         {
-            string system_string_character = system_string[i];
-            string string_character = system_string_character.substr(j, 1);
+            string information_string_character = information_string[i];
+            string string_character = information_string_character.substr(j, 1);
             font_bmp->bmp_shinonome16_get(string_character);
             unsigned char bmp[32];
             array<char, 32> bmp_array;
@@ -933,9 +933,9 @@ void system_tft()
             {
                 bmp[k] = bmp_array[k];
             }
-            draw_font(spr_system[i], bmp, true, j * 8);
+            draw_font(spr_information[i], bmp, true, j * 8);
         }
-        spr_system[i]->pushSprite(0, status_bar_height + 16 * i);
+        spr_information[i]->pushSprite(0, status_bar_height + 16 * i);
     }
 }
 
@@ -2196,12 +2196,12 @@ void core1()
             {
                 if ((int)((int)to_ms_since_boot(get_absolute_time()) - (int)reboot_count) > 1000) // flash mode
                 {
-                    for (int i = 0; i < sizeof(system_string) / sizeof(system_string[0]); i++)
+                    for (int i = 0; i < sizeof(information_string) / sizeof(information_string[0]); i++)
                     {
-                        system_string[i] = "";
+                        information_string[i] = "";
                     }
-                    system_string[3] = "           Flash mode";
-                    system_tft();
+                    information_string[3] = "           Flash mode";
+                    information_tft();
                     sleep_ms(1000);
                     reset_usb_boot(0, 0);
                 }
@@ -2212,8 +2212,8 @@ void core1()
                     get_v_bat();
                     status_bar_right_update();
                     get_v_bat_2();
-                    system_string[6] = "         Bat = " + v_bat_string;
-                    system_tft();
+                    information_string[6] = "         Bat = " + v_bat_string;
+                    information_tft();
                 }
             }
         }
@@ -2227,19 +2227,19 @@ void core1()
                 uac_freq_pre = freq_uac2;
                 if ((bit_uac2 < 0) || (freq_uac2 < 0))
                 {
-                    system_string[5] = "        No Enough Memory";
-                    system_tft();
+                    information_string[5] = "        No Enough Memory";
+                    information_tft();
                     status_bar_left_update(false);                    
                 }
                 else if ((bit_uac2 != 0) || (freq_uac2 != 0))
                 {
-                    system_string[5] = "        " + to_string(bit_uac2) + "bit / " + to_string(freq_uac2) + "Hz";
-                    system_tft();
+                    information_string[5] = "        " + to_string(bit_uac2) + "bit / " + to_string(freq_uac2) + "Hz";
+                    information_tft();
                     status_bar_left_update(true);
                 }else
                 {
-                    system_string[5] = "";
-                    system_tft();
+                    information_string[5] = "";
+                    information_tft();
                     status_bar_left_update(false);
                 }
             }
