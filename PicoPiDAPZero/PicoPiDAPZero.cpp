@@ -502,7 +502,10 @@ int main()
 
     set_sys_clock_pll(1596 * MHZ, 6, 2); // 133MHz
 
-    stdio_init_all();
+    board_init();
+    tusb_init();
+    usb_serial_init();
+
     gpio_set_function(TFT_BL, GPIO_FUNC_PWM);
     uint slice_num = pwm_gpio_to_slice_num(TFT_BL);
 
@@ -711,6 +714,27 @@ int main()
             printf("album art\n");
             draw_album_art();
             album_art_write = false;
+        }
+
+        if (usb_dac_mode)
+        {
+            printf("USB-DAC mode\n");
+            if (decoder)
+            {
+                delete decoder;
+                decoder = NULL;
+            }
+
+            if (out)
+            {
+                delete out;
+            }
+
+            if (audio_type_pre == wav_file)
+            {
+                wav_end();
+            }
+            uac2_main();
         }
 
         music_playing_pre = music_playing;

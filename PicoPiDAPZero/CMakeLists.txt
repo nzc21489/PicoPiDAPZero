@@ -6,6 +6,7 @@ set_source_files_properties(PicoPiDAPZero_wav.cpp PROPERTIES COMPILE_FLAGS -fexc
 set_source_files_properties(bmp_shinonome16.cpp PROPERTIES COMPILE_FLAGS -fexceptions)
 
 add_subdirectory(Si5351)
+add_subdirectory(uac2)
 
 #-- Pico Pi DAP Zero general I2S DAC --
 add_executable(PicoPiDAPZero
@@ -15,13 +16,14 @@ add_executable(PicoPiDAPZero
         getDirectoryList.cpp
         split.cpp
         bmp_shinonome16.cpp
+        usb_serial.c
         )
 
 target_compile_definitions(PicoPiDAPZero PRIVATE
 
 )
 
-target_link_libraries(PicoPiDAPZero pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico pico_tag tft_espi TJpg_Decoder hardware_pwm si5351)
+target_link_libraries(PicoPiDAPZero pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico pico_tag tft_espi TJpg_Decoder hardware_pwm si5351 tinyusb_device tinyusb_board pico_uac2)
 
 pico_enable_stdio_usb(PicoPiDAPZero 1)
 
@@ -37,6 +39,7 @@ add_executable(PicoPiDAPZero_CS4398
         getDirectoryList.cpp
         split.cpp
         bmp_shinonome16.cpp
+        usb_serial.c
         cs4398.cpp
         )
 
@@ -45,7 +48,7 @@ target_compile_definitions(PicoPiDAPZero_CS4398 PRIVATE
     NO_SOFT_VOL=1
 )
 
-target_link_libraries(PicoPiDAPZero_CS4398 pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351)
+target_link_libraries(PicoPiDAPZero_CS4398 pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351 tinyusb_device tinyusb_board pico_uac2_CS4398)
 
 pico_enable_stdio_usb(PicoPiDAPZero_CS4398 1)
 
@@ -61,6 +64,7 @@ add_executable(PicoPiDAPZero_DacPlusPro
         getDirectoryList.cpp
         split.cpp
         bmp_shinonome16.cpp
+        usb_serial.c
         DacPlusPro.cpp
         )
 
@@ -69,7 +73,7 @@ target_compile_definitions(PicoPiDAPZero_DacPlusPro PRIVATE
     NO_SOFT_VOL=1
 )
         
-target_link_libraries(PicoPiDAPZero_DacPlusPro pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351)
+target_link_libraries(PicoPiDAPZero_DacPlusPro pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351 tinyusb_device tinyusb_board pico_uac2_DacPlusPro)
 
 pico_enable_stdio_usb(PicoPiDAPZero_DacPlusPro 1)
 
@@ -85,6 +89,7 @@ add_executable(PicoPiDAPZero_Zero_HAT_DAC_CS4398
         getDirectoryList.cpp
         split.cpp
         bmp_shinonome16.cpp
+        usb_serial.c
         cs4398.cpp
         )
 
@@ -93,7 +98,7 @@ target_compile_definitions(PicoPiDAPZero_Zero_HAT_DAC_CS4398 PRIVATE
     NO_SOFT_VOL=1
 )
         
-target_link_libraries(PicoPiDAPZero_Zero_HAT_DAC_CS4398 pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_Zero_HAT_DAC_CS4398)
+target_link_libraries(PicoPiDAPZero_Zero_HAT_DAC_CS4398 pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_Zero_HAT_DAC_CS4398 tinyusb_device tinyusb_board pico_uac2_Zero_HAT_DAC_CS4398)
 
 pico_enable_stdio_usb(PicoPiDAPZero_Zero_HAT_DAC_CS4398 1)
 

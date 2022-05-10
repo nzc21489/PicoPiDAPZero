@@ -37,9 +37,10 @@ getDirectoryList *get_directory_list;
 
 volatile bool key_interrupt = false;
 
-string home_string[2] = {
+string home_string[3] = {
     "Explorer",
-    "System"};
+    "System",
+    "USB-DAC"};
 
 int x_jpeg = 0;
 int y_jpeg = 0;
@@ -58,6 +59,7 @@ enum player_mode_type
 {
     player_explorer = 0,
     player_system = 1,
+    usb_dac = 2
 };
 
 volatile uint16_t player_select = 0;
@@ -216,6 +218,8 @@ string music_file_data = "";
 volatile bool sd_status = true;
 
 volatile int jpeg_file_size_pre = 0;
+
+volatile bool usb_dac_mode = false;
 
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();
@@ -886,6 +890,20 @@ void home_select()
         system_string[6] = "         Bat = " + v_bat_string;
         system_tft();
         system_bat_time = to_ms_since_boot(get_absolute_time());
+    }
+    else if (player_mode == usb_dac)
+    {
+        usb_dac_mode = true;
+        system_string[3] = "             USB-DAC";
+        system_string[4] = "";
+        system_string[5] = "";
+        system_bat_time = to_ms_since_boot(get_absolute_time());
+        get_v_bat();
+        volume = 100;
+        status_bar_right_update();
+        status_bar_left_update(false);
+        tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
+        system_tft();
     }
 }
 
@@ -2197,6 +2215,90 @@ void core1()
                     system_string[6] = "         Bat = " + v_bat_string;
                     system_tft();
                 }
+            }
+        }
+        else if (usb_dac_mode)
+        {
+            static int uac_bit_pre = 0;
+            static int uac_freq_pre = 0;
+            if ((uac_bit_pre != bit_uac2) || (uac_freq_pre != freq_uac2))
+            {
+                uac_bit_pre = bit_uac2;
+                uac_freq_pre = freq_uac2;
+                if ((bit_uac2 < 0) || (freq_uac2 < 0))
+                {
+                    system_string[5] = "        No Enough Memory";
+                    system_tft();
+                    status_bar_left_update(false);                    
+                }
+                else if ((bit_uac2 != 0) || (freq_uac2 != 0))
+                {
+                    system_string[5] = "        " + to_string(bit_uac2) + "bit / " + to_string(freq_uac2) + "Hz";
+                    system_tft();
+                    status_bar_left_update(true);
+                }else
+                {
+                    system_string[5] = "";
+                    system_tft();
+                    status_bar_left_update(false);
+                }
+            }
+
+            if ((to_ms_since_boot(get_absolute_time()) - system_bat_time) > 1000) // update voltage
+            {
+                system_bat_time = to_ms_since_boot(get_absolute_time());
+                get_v_bat();
+                status_bar_right_update();
+            }
+
+            if (key_interrupt)
+            {
+                key_num_pre = key_num;
+                key_num = get_key();
+                key_interrupt = false;
+                if (key_num < 11)
+                {
+                    time_hold = to_ms_since_boot(get_absolute_time());
+                    time_hold_multi = time_hold + time_long + time_long_interval;
+                    key_long = false;
+                    key_count = 0;
+                }
+                else
+                {
+                    key_long = false;
+                    key_count = 100;
+                }
+            }
+
+            if (key_num < 11)
+            {
+                key_long_pre = key_long;
+                if ((to_ms_since_boot(get_absolute_time()) - time_hold) > time_long)
+                {
+                    key_long = true;
+                }
+            }
+
+            if ((key_num == 1) && (key_count == 0)) // display on / off
+            {
+                display_on = !display_on;
+                if (display_on)
+                {
+                    pwm_set_gpio_level(TFT_BL, brightness[brightness_select]);
+                    if (player_screen_mode)
+                    {
+                        playing_time_update();
+                    }
+                }
+                else
+                {
+                    pwm_set_gpio_level(TFT_BL, 0);
+                }
+            }
+
+            if (key_num < 11)
+            {
+                key_count++;
             }
         }
 

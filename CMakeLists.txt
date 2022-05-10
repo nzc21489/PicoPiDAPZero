@@ -16,6 +16,7 @@ set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wl,--gc-s
 set(INCLUDE_DIR
   ${PROJECT_SOURCE_DIR}/PicoPiDAPZero
   ${PROJECT_SOURCE_DIR}/PicoPiDAPZero/Si5351
+  ${PROJECT_SOURCE_DIR}/PicoPiDAPZero/uac2
   ${PROJECT_SOURCE_DIR}/pico_tag
   ${PROJECT_SOURCE_DIR}/TJpg_Decoder/src
   ${PROJECT_SOURCE_DIR}/ESP8266Audio/src
@@ -39,6 +40,9 @@ add_compile_definitions(
         PICO_SD_DAT0_PIN=12
         ARDUINO_ARCH_RP2040
         sdio_4pin=1
+        CFG_TUSB_MCU=OPT_MCU_RP2040
+        CFG_TUD_AUDIO_ENABLE_FEEDBACK_EP=1
+        CFG_TUD_AUDIO_ENABLE_EP_OUT=1
         )
 
 include_directories("${INCLUDE_DIR}")

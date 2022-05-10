@@ -72,6 +72,14 @@
 
 #include "si5351.h"
 
+#include "tusb.h"
+
+#include "usb_serial.h"
+#include "bsp/board.h"
+
+#include "uac2_main.h"
+#include "pico_uac2_program.h"
+
 #if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
 #include "cs4398.h"
 #endif
@@ -160,6 +168,8 @@ enum file_type
     file_start,
 };
 extern volatile file_type audio_type_pre;
+
+extern volatile bool usb_dac_mode;
 
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();
