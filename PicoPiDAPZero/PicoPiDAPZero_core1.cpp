@@ -889,6 +889,7 @@ void home_select()
         information_string[3] = "             USB-DAC";
         information_string[4] = "";
         information_string[5] = "";
+        information_string[6] = "";
         system_bat_time = to_ms_since_boot(get_absolute_time());
         get_v_bat();
         volume = 100;
@@ -1570,6 +1571,7 @@ void core1()
 
     if (file_exist)
     {
+        tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
         home_screen_mode = false;
         pico_tag_wait = true;
         while (pico_tag_wait)
