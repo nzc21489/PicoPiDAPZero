@@ -1571,6 +1571,7 @@ void core1()
 
     if (file_exist)
     {
+        sleep_ms(10); // wait a bit to avoid uncontrollable when usb is connected
         tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
         home_screen_mode = false;
         pico_tag_wait = true;
