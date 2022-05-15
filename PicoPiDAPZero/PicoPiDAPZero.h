@@ -161,6 +161,9 @@ extern uint32_t sampling_rate_pre;
 #define sd_init_skip_button1 6
 #define sd_init_skip_button2 3
 
+#define usb_dac_button1 5
+#define usb_dac_button2 9
+
 extern volatile bool sd_status;
 
 enum file_type

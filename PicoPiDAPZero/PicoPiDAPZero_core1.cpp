@@ -1619,7 +1619,36 @@ void core1()
         change_digital_filter();
     }
 
-    if (file_exist)
+    if ((!gpio_get(buttons_pin[usb_dac_button1])) || (!gpio_get(buttons_pin[usb_dac_button2])))
+    {
+#ifdef pmp_digital_filter
+        digital_filter_read = true;
+        while(digital_filter_read)
+        {
+        }
+        if (digital_filter < 0)
+        {
+            digital_filter = 0;
+        }
+        change_digital_filter();
+#endif
+
+        home_screen_mode = false;
+        player_mode = usb_dac;
+        usb_dac_mode = true;
+        information_string[3] = "             USB-DAC";
+        information_string[4] = "";
+        information_string[5] = "";
+        information_string[6] = "";
+        system_bat_time = to_ms_since_boot(get_absolute_time());
+        get_v_bat();
+        volume = 100;
+        status_bar_right_update();
+        status_bar_left_update(false);
+        tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
+        information_tft();
+    }
+    else if (file_exist)
     {
         sleep_ms(10); // wait a bit to avoid uncontrollable when usb is connected
         tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
