@@ -29,7 +29,7 @@
 #include <string>
 using namespace std;
 
-static const string version_picopidap_zero = "         Version 0.2.0";
+static const string version_picopidap_zero = "         Version 0.2.1";
 
 #if defined(DAC_CS4398)
 static const string dac_picopidap_zero = "             CS4398";
