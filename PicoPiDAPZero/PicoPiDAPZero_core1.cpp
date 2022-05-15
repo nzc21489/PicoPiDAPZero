@@ -39,9 +39,9 @@ volatile bool key_interrupt = false;
 
 string home_string[4] = {
     "Explorer",
-    "System",
     "USB-DAC",
-    "DAC"};
+    "DAC",
+    "System"};
 
 int x_jpeg = 0;
 int y_jpeg = 0;
@@ -59,9 +59,9 @@ volatile uint8_t player_mode = 0; //0:explorer, 1:System
 enum player_mode_type
 {
     player_explorer = 0,
-    player_system = 1,
-    usb_dac = 2,
-    dac = 3
+    usb_dac = 1,
+    dac = 2,
+    player_system = 3
 };
 
 volatile uint16_t player_select = 0;
