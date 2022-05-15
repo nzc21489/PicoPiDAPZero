@@ -37,10 +37,11 @@ getDirectoryList *get_directory_list;
 
 volatile bool key_interrupt = false;
 
-string home_string[3] = {
+string home_string[4] = {
     "Explorer",
     "System",
-    "USB-DAC"};
+    "USB-DAC",
+    "DAC"};
 
 int x_jpeg = 0;
 int y_jpeg = 0;
@@ -59,7 +60,8 @@ enum player_mode_type
 {
     player_explorer = 0,
     player_system = 1,
-    usb_dac = 2
+    usb_dac = 2,
+    dac = 3
 };
 
 volatile uint16_t player_select = 0;
@@ -98,6 +100,9 @@ volatile bool get_is_dir = false;
 volatile bool file_update = false;
 
 volatile bool pico_tag_wait = false;
+
+volatile bool digital_filter_write = false;
+volatile bool digital_filter_read = false;
 
 string music_path = "";
 vector<string> musics;
@@ -181,6 +186,7 @@ array<string, 4> player_screen;
 
 uint32_t reboot_count = 0x7fffffff;
 bool system_first_time = false;
+bool dac_display_first_time = false;
 
 static const uint8_t brightness[5] = {100, 45, 42, 38, 35};
 
@@ -212,6 +218,8 @@ volatile bool sd_status = true;
 volatile int jpeg_file_size_pre = 0;
 
 volatile bool usb_dac_mode = false;
+
+int digital_filter = -1;
 
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();
@@ -255,6 +263,18 @@ void change_volume(uint8_t vol)
     change_volume_DacPlusPro(vol);
 }
 #endif
+
+
+void change_digital_filter()
+{
+#if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
+    cs4398_change_digital_filter(digital_filter_nums[digital_filter]);
+#elif defined(DAC_DacPlusPro)
+    DacPlusPro_change_digital_filter(digital_filter_nums[digital_filter]);
+#else
+
+#endif
+}
 
 void get_v_bat()
 {
@@ -720,13 +740,6 @@ void status_bar_left_update(uint8_t play_mode)
         spr_status_bar[status_bar_left].print("  SD Error");
         spr_status_bar[status_bar_left].unloadFont();
     }
-
-#ifdef DAC_DacPlusPro
-    spr_status_bar[status_bar_left].loadFont(num_font);
-    spr_status_bar[status_bar_left].print("  ");
-    spr_status_bar[status_bar_left].print(DacPlusPro_filter);
-    spr_status_bar[status_bar_left].unloadFont();
-#endif
     spr_status_bar[status_bar_left].pushSprite(0, 0);
 }
 
@@ -879,12 +892,25 @@ void home_select()
         system_first_time = true;
         reboot_count = 0x7fffffff;
         get_v_bat_2();
+        information_string[4] = version_picopidap_zero;
         information_string[6] = "         Bat = " + v_bat_string;
         information_tft();
         system_bat_time = to_ms_since_boot(get_absolute_time());
     }
     else if (player_mode == usb_dac)
     {
+#ifdef pmp_digital_filter
+        digital_filter_read = true;
+        while(digital_filter_read)
+        {
+        }
+        if (digital_filter < 0)
+        {
+            digital_filter = 0;
+        }
+        change_digital_filter();
+#endif
+
         usb_dac_mode = true;
         information_string[3] = "             USB-DAC";
         information_string[4] = "";
@@ -896,6 +922,25 @@ void home_select()
         status_bar_right_update();
         status_bar_left_update(false);
         tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
+        information_tft();
+    }
+    else if (player_mode == dac) // system
+    {
+#ifdef pmp_digital_filter
+        digital_filter_read = true;
+        while(digital_filter_read)
+        {
+        }
+        if (digital_filter < 0)
+        {
+            digital_filter = 0;
+        }
+        information_string[6] = digital_filter_strs[digital_filter];
+#else
+        information_string[6] = " No digital filter available";
+#endif
+        information_string[4] = "";
+        dac_display_first_time = true;
         information_tft();
     }
 }
@@ -1568,6 +1613,11 @@ void core1()
     tft.setTextSize(1);
 
     init_key();
+
+    if (digital_filter >= 0)
+    {
+        change_digital_filter();
+    }
 
     if (file_exist)
     {
@@ -2295,6 +2345,90 @@ void core1()
             {
                 key_count++;
             }
+        }
+        else if (player_mode == dac) // dac setting
+        {
+            if ((to_ms_since_boot(get_absolute_time()) - system_bat_time) > 1000) // update voltage
+            {
+                system_bat_time = to_ms_since_boot(get_absolute_time());
+                get_v_bat();
+                status_bar_right_update();
+            }
+
+            if (key_interrupt)
+            {
+                key_num_pre = key_num;
+                key_num = get_key();
+                key_interrupt = false;
+                if (key_num < 11)
+                {
+                    time_hold = to_ms_since_boot(get_absolute_time());
+                    time_hold_multi = time_hold + time_long + time_long_interval;
+                    key_long = false;
+                    key_count = 0;
+                }
+                else
+                {
+                    key_long = false;
+                    key_count = 100;
+                }
+            }
+
+            if (key_num < 11)
+            {
+                key_long_pre = key_long;
+                if ((to_ms_since_boot(get_absolute_time()) - time_hold) > time_long)
+                {
+                    key_long = true;
+                }
+            }
+#ifdef pmp_digital_filter
+            if ((key_num == 6) && (key_count == 0)) // next dac digital filter select
+            {
+                digital_filter++;
+                digital_filter %= digital_filter_num;
+                information_string[6] = digital_filter_strs[digital_filter];
+                information_tft();
+            }
+            else if ((key_num == 4) && (key_count == 0)) // prev dac digital filter select
+            {
+                digital_filter--;
+                if (digital_filter < 0)
+                {
+                    digital_filter = digital_filter_nums[digital_filter_num - 1];
+                }
+                information_string[6] = digital_filter_strs[digital_filter];
+                information_tft();
+            }
+            else if (key_num == 11)
+            {
+            }
+#else
+            if (key_num == 11)
+            {
+            }
+#endif
+            else if (key_num == 100)
+            {
+            }
+            else if (key_count == 0)
+            {
+                digital_filter_write = true;
+                while(digital_filter_write)
+                {
+                    sleep_ms(1);
+                }
+                change_digital_filter();
+                home_screen_mode = true;
+                tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
+                home_tft();
+            }
+
+            if (key_num < 11)
+            {
+                key_count++;
+            }
+
         }
 
         if (player_screen_mode && player_screen_update)

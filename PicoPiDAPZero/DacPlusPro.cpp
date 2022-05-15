@@ -105,7 +105,7 @@ void DacPlusPro_setup()
     change_volume_DacPlusPro(vol_min);
 
     // digital filter
-    send_i2c(43, DacPlusPro_filter);
+    send_i2c(43, 1);
 
     // sync request ?
     send_i2c(19, 0b10001);
@@ -233,3 +233,11 @@ void change_volume_DacPlusPro(uint8_t vol)
     send_i2c(62, vol_value_send);
 }
  
+void DacPlusPro_change_digital_filter(int digital_filter)
+{
+    if ((digital_filter == 1) || (digital_filter == 2) || (digital_filter == 3) || (digital_filter == 7))
+    {
+        // digital filter
+        send_i2c(43, digital_filter);
+    }
+}

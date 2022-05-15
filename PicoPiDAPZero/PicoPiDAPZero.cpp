@@ -118,6 +118,21 @@ bool init_sd()
             f_close(&fil);
         }
 
+#ifdef pmp_digital_filter
+        fr = f_open(&fil, (pmp_path + "/" + pmp_digital_filter).c_str(), FA_READ | FA_OPEN_EXISTING);
+        if (fr == FR_OK)
+        {
+            char line[100];
+            f_gets(line, sizeof(line), &fil);
+            string d_f = line;
+            if (d_f.size() > 0)
+            {
+                digital_filter = stoi(d_f);
+            }
+            f_close(&fil);
+        }
+#endif
+
         f_closedir(&dir);
     }
     else
@@ -469,6 +484,38 @@ void seek_audio()
     }
 }
 
+void read_digital_filter()
+{
+#ifdef pmp_digital_filter
+        fr = f_open(&fil, (pmp_path + "/" + pmp_digital_filter).c_str(), FA_READ | FA_OPEN_EXISTING);
+        if (fr == FR_OK)
+        {
+            char line[100];
+            f_gets(line, sizeof(line), &fil);
+            string d_f = line;
+            if (d_f.size() > 0)
+            {
+                digital_filter = stoi(d_f);
+            }
+            f_close(&fil);
+        }
+#endif
+}
+
+void write_digital_filter()
+{
+#ifdef pmp_digital_filter
+    fr = f_open(&fil, (pmp_path + "/" + pmp_digital_filter).c_str(), FA_WRITE | FA_CREATE_ALWAYS);
+    if (fr == FR_OK)
+    {
+        char buff;
+        UINT bw;
+        f_write(&fil, (to_string(digital_filter)).c_str(), strlen((to_string(digital_filter)).c_str()), &bw);
+        f_close(&fil);
+    }
+#endif
+}
+
 int main()
 {
     setup_si5351_i2c();
@@ -478,23 +525,7 @@ int main()
 #endif
 
 #ifdef DAC_DacPlusPro
-    init_key();
-    if (!gpio_get(buttons_pin[1]))
-    {
-        DacPlusPro_filter = 2;
-    }
-    else if (!gpio_get(buttons_pin[5]))
-    {
-        DacPlusPro_filter = 3;
-    }
-    else if (!gpio_get(buttons_pin[7]))
-    {
-        DacPlusPro_filter = 7;
-    }
     DacPlusPro_setup();
-#endif
-
-#ifdef DAC_DacPlusPro
     DacPlusPro_change_bit_freq(16, 44100);
 #else
     si5351_set_clock(16, 44100);
@@ -735,6 +766,18 @@ int main()
                 wav_end();
             }
             uac2_main();
+        }
+
+        if (digital_filter_read)
+        {
+            read_digital_filter();
+            digital_filter_read = false;
+        }
+
+        if (digital_filter_write)
+        {
+            write_digital_filter();
+            digital_filter_write = false;
         }
 
         music_playing_pre = music_playing;

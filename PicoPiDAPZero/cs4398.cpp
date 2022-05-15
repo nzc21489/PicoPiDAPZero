@@ -34,7 +34,7 @@ uint8_t cs4398_register_value[10] = {
     0b01110000, // 1
     0b00010000, // 2
     0b00001001, // 3
-    0b00000000, // 4
+    0b11000000, // 4
     0b00000000, // 5
     0b00000000, // 6
     0b10110000, // 7
@@ -185,4 +185,14 @@ void change_volume_cs4398(uint8_t vol)
     }
     send_i2c(5, vol_value_send);
     send_i2c(6, vol_value_send);
+}
+
+void cs4398_change_digital_filter(int digital_filter)
+{
+    if ((digital_filter == 0) || (digital_filter == 1))
+    {
+        cs4398_register_value[7] &= 0b11111011;
+        cs4398_register_value[7] |= (digital_filter << 2);
+        send_i2c(7, cs4398_register_value[7]);
+    }
 }

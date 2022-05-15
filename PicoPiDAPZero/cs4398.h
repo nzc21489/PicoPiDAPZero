@@ -27,20 +27,37 @@
 #define CS4398
 
 #include "stdint.h"
+#include <string>
+
+using namespace std;
 
 #ifdef DAC_CS4398
 #define cs4398address 0b1001100
+#define pmp_digital_filter "digital_filter_CS4398.txt"
 #else
 #define cs4398address 0b1001101
+#define pmp_digital_filter "digital_filter_Zero_HAT_DAC_CS4398.txt"
 #endif
 
 #define vol_max 0b00000000
 #define vol_min 0b11111111
+
+#define digital_filter_num 2
+static const uint8_t digital_filter_nums[2] = {
+    0,
+    1
+};
+
+static const string digital_filter_strs[2] = {
+    "         fast roll off",
+    "         slow roll off"
+};
 
 extern void cs4398_setup();
 extern void cs4398_mute();
 extern void cs4398_unmute();
 extern void cs4398_set_FM(int sampling_rate);
 extern void change_volume_cs4398(uint8_t vol);
+extern void cs4398_change_digital_filter(int digital_filter);
 
 #endif //CS4398

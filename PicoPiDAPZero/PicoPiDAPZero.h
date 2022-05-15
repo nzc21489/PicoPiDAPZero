@@ -115,6 +115,9 @@ extern volatile bool file_update;
 
 extern volatile bool pico_tag_wait;
 
+extern volatile bool digital_filter_write;
+extern volatile bool digital_filter_read;
+
 extern string music_path;
 extern vector<string> musics;
 extern uint16_t music_select;
@@ -172,6 +175,8 @@ enum file_type
 extern volatile file_type audio_type_pre;
 
 extern volatile bool usb_dac_mode;
+
+extern int digital_filter;
 
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();

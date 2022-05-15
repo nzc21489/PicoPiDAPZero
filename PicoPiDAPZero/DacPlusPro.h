@@ -27,17 +27,37 @@
 #define DACPLUSPRO
 
 #include "stdint.h"
+#include <string>
+
+using namespace std;
 
 #define DacPlusPro_address 0x4D
 #define vol_max 0b00110000
 #define vol_min 0b11111111
 
+#define pmp_digital_filter "PCM512X.txt"
+
+#define digital_filter_num 4
 extern uint8_t DacPlusPro_filter;
+static const uint8_t digital_filter_nums[4] = {
+    1,
+    2,
+    3,
+    7
+};
+
+static const string digital_filter_strs[4] = {
+    "       FIR interpolation",
+    "        Low latency IIR",
+    "       High attenuation",
+    " Ringing-less low latency FIR"
+};
 
 extern void DacPlusPro_setup();
 // extern void DacPlusPro_mute();
 // extern void DacPlusPro_unmute();
 extern void DacPlusPro_change_bit_freq(uint8_t bit, uint32_t freq);
 extern void change_volume_DacPlusPro(uint8_t vol);
+extern void DacPlusPro_change_digital_filter(int digital_filter);
 
 #endif //DACPLUSPRO
