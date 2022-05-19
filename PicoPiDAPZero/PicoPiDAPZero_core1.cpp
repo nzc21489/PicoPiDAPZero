@@ -2318,11 +2318,14 @@ void core1()
                 }
             }
 
-            if ((to_ms_since_boot(get_absolute_time()) - system_bat_time) > 1000) // update voltage
+            if ((to_ms_since_boot(get_absolute_time()) - system_bat_time) > 100000) // update voltage
             {
                 system_bat_time = to_ms_since_boot(get_absolute_time());
-                get_v_bat();
-                status_bar_right_update();
+                if (display_on)
+                {
+                    get_v_bat();
+                    status_bar_right_update();
+                }
             }
 
             if (key_interrupt)
