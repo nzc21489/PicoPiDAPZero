@@ -221,6 +221,9 @@ volatile bool usb_dac_mode = false;
 
 int digital_filter = -1;
 
+int playing_mode = playing_mode_normal;
+volatile bool repeat_next = false;
+
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();
 
@@ -740,6 +743,28 @@ void status_bar_left_update(uint8_t play_mode)
         spr_status_bar[status_bar_left].print("  SD Error");
         spr_status_bar[status_bar_left].unloadFont();
     }
+
+    switch (playing_mode)
+    {
+    case playing_mode_normal:
+        break;
+
+    case playing_mode_repeat_1:
+        spr_status_bar[status_bar_left].loadFont(num_font);
+        spr_status_bar[status_bar_left].print(" R1");
+        spr_status_bar[status_bar_left].unloadFont();
+        break;
+
+    case playing_mode_repeat_all:
+        spr_status_bar[status_bar_left].loadFont(num_font);
+        spr_status_bar[status_bar_left].print(" RA");
+        spr_status_bar[status_bar_left].unloadFont();
+        break;
+
+    default:
+        break;
+    }
+
     spr_status_bar[status_bar_left].pushSprite(0, 0);
 }
 
@@ -1772,6 +1797,7 @@ void core1()
             key7 : back
             key8 : go down (long press supported) / volume down (long press supported)
             key9 : show player screen / (long press) go home screen
+            key10 : change playing mode
             */
 
             if ((key_num == 1) && (key_count == 0)) // display on / off
@@ -2049,33 +2075,38 @@ void core1()
                 if (player_screen_mode) // next music file
                 {
                     key_num_pre = key_num;
-                    music_playing = 0;
-                    music_playing_pre = 1;
 
-                    let_music_stop = true;
+                    if (playing_mode == playing_mode_repeat_all)
+                    {
+                        repeat_next =true;
+                        music_playing = 0;
+                        music_playing_pre = 1;
 
-                    while (let_music_stop)
-                    {
-                    }
-                    pause = false;
+                        let_music_stop = true;
 
-                    if ((music_select) < (musics.size() - 1))
-                    {
-                        music_select++;
-                    }
-                    else
-                    {
-                        music_select = 0;
-                    }
-                    string file_name = musics[music_select];
-                    if (is_audio_file(file_name))
-                    {
-                        pico_tag_wait = true;
-                        while (pico_tag_wait)
+                        while (let_music_stop)
                         {
                         }
+                        pause = false;
+
                         music_playing = 1;
                         music_playing_pre = 0;
+
+                        while(music_playing_pre == 0)
+                        {
+                        }
+
+                        album_art_write = true;
+                        
+                        while(repeat_next)
+                        {
+                        }
+
+                        while(album_art_write)
+                        {
+                        }
+                        playerScreen();
+
                         player_screen_mode = true;
                         play_start = to_ms_since_boot(get_absolute_time());
                         play_update = to_ms_since_boot(get_absolute_time());
@@ -2083,14 +2114,51 @@ void core1()
                         rotate_count = 0xffff - 1;
                         player_screen_rotate_num = 1;
                         status_bar_left_update(1);
-                        if (player_screen_mode)
+                    }
+                    else
+                    {
+                        music_playing = 0;
+                        music_playing_pre = 1;
+
+                        let_music_stop = true;
+
+                        while (let_music_stop)
                         {
-                            album_art_write = true;
-                            while (album_art_write)
+                        }
+                        pause = false;
+                        if ((music_select) < (musics.size() - 1))
+                        {
+                            music_select++;
+                        }
+                        else
+                        {
+                            music_select = 0;
+                        }
+                        string file_name = musics[music_select];
+                        if (is_audio_file(file_name))
+                        {
+                            pico_tag_wait = true;
+                            while (pico_tag_wait)
                             {
                             }
+                            music_playing = 1;
+                            music_playing_pre = 0;
+                            player_screen_mode = true;
+                            play_start = to_ms_since_boot(get_absolute_time());
+                            play_update = to_ms_since_boot(get_absolute_time());
 
-                            playerScreen();
+                            rotate_count = 0xffff - 1;
+                            player_screen_rotate_num = 1;
+                            status_bar_left_update(1);
+                            if (player_screen_mode)
+                            {
+                                album_art_write = true;
+                                while (album_art_write)
+                                {
+                                }
+
+                                playerScreen();
+                            }
                         }
                     }
                 }
@@ -2190,6 +2258,19 @@ void core1()
                 else
                 {
                     playerScreen();
+                }
+            }
+            else if ((key_num == 10) && (key_count == 0)) // change playing mode
+            {
+                playing_mode++;
+                playing_mode %= playing_mode_num;
+                if (music_playing)
+                {
+                    status_bar_left_update(true);
+                }
+                else
+                {
+                    status_bar_left_update(false);
                 }
             }
 

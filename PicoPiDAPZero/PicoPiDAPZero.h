@@ -181,6 +181,20 @@ extern volatile bool usb_dac_mode;
 
 extern int digital_filter;
 
+extern int playing_mode;
+
+enum playing_mode_type
+{
+    playing_mode_normal,
+    playing_mode_repeat_1,
+    playing_mode_repeat_all,
+};
+
+#define playing_mode_num 3
+
+extern volatile bool repeat_next;
+extern string jpeg_file_name;
+
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();
 

@@ -516,6 +516,126 @@ void write_digital_filter()
 #endif
 }
 
+void next_music_repeat_all()
+{
+    if (music_select < (musics.size() - 1))
+    {
+        music_select++;
+        if (!get_directory_list->is_dir[music_select])
+        {
+            string music_filename = music_path + "/" + musics[music_select];
+            if (pico_tag1)
+            {
+                delete pico_tag1;
+            }
+            pico_tag1 = pico_tag_get_tag(music_filename);
+            duration = pico_tag1->duration;
+            pico_tag_wait = false;
+
+            repeat_next = false;
+
+            if (album_art_write)
+            {
+                draw_album_art();
+                album_art_write = false;
+            }
+
+            player_screen_update = true;
+
+            music_decoder_start();
+            return;
+        }
+    }
+    int count = 0;
+    string dir = get_directory_list->path;
+    while (1)
+    {
+        while (count < get_directory_list->name_list.size())
+        {
+            if (get_directory_list->is_dir[count])
+            {
+                get_directory_list->path = get_directory_list->path + "/" + get_directory_list->name_list[count];
+                get_directory_list->update();
+                int count2 = 0;
+                while (count2 < get_directory_list->name_list.size())
+                {
+                    if (!get_directory_list->is_dir[count2])
+                    {
+                        music_path = get_directory_list->path;
+                        music_select = count2;
+                        musics = get_directory_list->name_list;
+
+                        string music_filename = music_path + "/" + musics[music_select];
+                        printf("%s\n", music_filename.c_str());
+                        if (pico_tag1)
+                        {
+                            delete pico_tag1;
+                        }
+                        pico_tag1 = pico_tag_get_tag(music_filename);
+                        duration = pico_tag1->duration;
+                        pico_tag_wait = false;
+                        repeat_next = false;
+
+                        printf("album art\n");
+                        if (get_directory_list->jpeg_file != "")
+                        {
+                            jpeg_file_name = music_path + "/" + get_directory_list->jpeg_file;
+                        }
+                        else
+                        {
+                            jpeg_file_name = "";
+                        }
+                        draw_album_art();
+                        album_art_write = false;
+
+                        player_screen_update = true;
+                        
+                        music_decoder_start();
+                        return;
+                    }
+                    count2++;
+                }
+                count = 0;
+            }
+            else
+            {
+                count++;
+            }
+        }
+        string path_string = "";
+        vector<string> path_splitted = split(get_directory_list->path, "/");
+        if (path_splitted.size() == 2)
+        {
+            path_string = "/";
+        }
+        else
+        {
+            for (int i = 1; i < (path_splitted.size() - 1); i++)
+            {
+                path_string += "/" + path_splitted[i];
+            }
+        }
+        get_directory_list->path = path_string;
+        get_directory_list->update();
+
+        for (int i = 0; i < get_directory_list->name_list.size(); i++)
+        {
+            if (get_directory_list->name_list[i] == path_splitted[path_splitted.size() - 1])
+            {
+                count = i + 1;
+            }
+        }
+
+        if (get_directory_list->path == "/")
+        {
+            if (count == get_directory_list->name_list.size())
+            {
+                count = 0;
+            }
+        }
+    }
+}
+
 int main()
 {
     setup_si5351_i2c();
@@ -582,36 +702,55 @@ int main()
             {
                 if (music_playing && !wav_playing)
                 {
-                    music_decoder_start();
+                    if ((playing_mode == playing_mode_repeat_all) && (repeat_next))
+                    {
+                        next_music_repeat_all();
+                        repeat_next = false;
+                    }
+                    else{
+                        music_decoder_start();
+                    }
                 }
                 if (!wav_loop())
                 {
                     wav_stop();
-                    if (music_select < (musics.size() - 1))
+                    if (playing_mode == playing_mode_repeat_1)
                     {
-                        music_select++;
-                        player_screen_rotate_num = 1;
-                        rotate_count = 0xffff - 1;
                         play_start = to_ms_since_boot(get_absolute_time());
-                        string music_filename = music_path + "/" + musics[music_select];
-                        if (pico_tag1)
-                        {
-                            delete pico_tag1;
-                            pico_tag1 = NULL;
-                        }
-                        pico_tag1 = pico_tag_get_tag(music_filename);
-                        duration = pico_tag1->duration;
-                        player_screen_update = true;
                         music_decoder_start();
                     }
-                    else
+                    else if (playing_mode == playing_mode_normal)
                     {
-                        if (music_playing){
-                            pause_time = to_ms_since_boot(get_absolute_time());
-                            status_bar_left_update(0);
+                        if (music_select < (musics.size() - 1))
+                        {
+                            music_select++;
+                            player_screen_rotate_num = 1;
+                            rotate_count = 0xffff - 1;
+                            play_start = to_ms_since_boot(get_absolute_time());
+                            string music_filename = music_path + "/" + musics[music_select];
+                            if (pico_tag1)
+                            {
+                                delete pico_tag1;
+                                pico_tag1 = NULL;
+                            }
+                            pico_tag1 = pico_tag_get_tag(music_filename);
+                            duration = pico_tag1->duration;
+                            player_screen_update = true;
+                            music_decoder_start();
                         }
-                        music_playing = false;
-                        pause = false;
+                        else
+                        {
+                            if (music_playing){
+                                pause_time = to_ms_since_boot(get_absolute_time());
+                                status_bar_left_update(0);
+                            }
+                            music_playing = false;
+                            pause = false;
+                        }
+                    }
+                    else if(playing_mode == playing_mode_repeat_all)
+                    {
+                        next_music_repeat_all();
                     }
                 }
                 else
@@ -631,31 +770,43 @@ int main()
                         if (!seeking)
                         {
                             decoder->stop();
-                            if (music_select < (musics.size() - 1))
+                            if (playing_mode == playing_mode_repeat_1)
                             {
-                                music_select++;
-                                player_screen_rotate_num = 1;
-                                rotate_count = 0xffff - 1;
                                 play_start = to_ms_since_boot(get_absolute_time());
-                                string music_filename = music_path + "/" + musics[music_select];
-                                if (pico_tag1)
-                                {
-                                    delete pico_tag1;
-                                    pico_tag1 = NULL;
-                                }
-                                pico_tag1 = pico_tag_get_tag(music_filename);
-                                duration = pico_tag1->duration;
-                                player_screen_update = true;
                                 music_decoder_start();
                             }
-                            else
+                            else if (playing_mode == playing_mode_normal)
                             {
-                                if (music_playing){
-                                    pause_time = to_ms_since_boot(get_absolute_time());
-                                    status_bar_left_update(0);
+                                if (music_select < (musics.size() - 1))
+                                {
+                                    music_select++;
+                                    player_screen_rotate_num = 1;
+                                    rotate_count = 0xffff - 1;
+                                    play_start = to_ms_since_boot(get_absolute_time());
+                                    string music_filename = music_path + "/" + musics[music_select];
+                                    if (pico_tag1)
+                                    {
+                                        delete pico_tag1;
+                                        pico_tag1 = NULL;
+                                    }
+                                    pico_tag1 = pico_tag_get_tag(music_filename);
+                                    duration = pico_tag1->duration;
+                                    player_screen_update = true;
+                                    music_decoder_start();
                                 }
-                                music_playing = false;
-                                pause = false;
+                                else
+                                {
+                                    if (music_playing){
+                                        pause_time = to_ms_since_boot(get_absolute_time());
+                                        status_bar_left_update(0);
+                                    }
+                                    music_playing = false;
+                                    pause = false;
+                                }
+                            }
+                            else if(playing_mode == playing_mode_repeat_all)
+                            {
+                                next_music_repeat_all();
                             }
                         }
                     }
@@ -667,7 +818,14 @@ int main()
                 {
                     if (!seeking)
                     {
-                        music_decoder_start();
+                        if ((playing_mode == playing_mode_repeat_all) && (repeat_next))
+                        {
+                            next_music_repeat_all();
+                            repeat_next = false;
+                        }
+                        else{
+                            music_decoder_start();
+                        }
                     }
                     else
                     {
