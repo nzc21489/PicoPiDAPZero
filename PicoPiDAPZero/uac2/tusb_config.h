@@ -158,7 +158,7 @@ extern "C" {
 #define CFG_TUD_AUDIO_FUNC_1_N_AS_INT 	          2
 
 // Size of control request buffer
-#define CFG_TUD_AUDIO_FUNC_1_CTRL_BUF_SZ	72
+#define CFG_TUD_AUDIO_FUNC_1_CTRL_BUF_SZ	128
 
 
 
