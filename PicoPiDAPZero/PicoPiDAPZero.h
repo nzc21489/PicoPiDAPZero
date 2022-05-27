@@ -198,7 +198,9 @@ extern string jpeg_file_name;
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();
 
+#ifdef NO_SOFT_VOL
 extern void change_volume(uint8_t vol);
+#endif
 extern void cs4398_setup();
 extern void init_key();
 extern void core1();

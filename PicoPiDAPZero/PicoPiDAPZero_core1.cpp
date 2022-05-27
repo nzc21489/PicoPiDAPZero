@@ -267,7 +267,6 @@ void change_volume(uint8_t vol)
 }
 #endif
 
-
 void change_digital_filter()
 {
 #if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
@@ -1827,7 +1826,9 @@ void core1()
                         {
                             volume = 100;
                         }
+#ifdef NO_SOFT_VOL
                         change_volume(volume);
+#endif
                         volume_write = 1;
                         status_bar_right_update();
                     }
@@ -1842,7 +1843,9 @@ void core1()
                                 {
                                     volume = 100;
                                 }
+#ifdef NO_SOFT_VOL
                                 change_volume(volume);
+#endif
                                 volume_write = 1;
                                 status_bar_right_update();
                                 time_hold_multi += time_long_interval;
@@ -2183,7 +2186,9 @@ void core1()
                         if (volume != 0)
                         {
                             volume--;
+#ifdef NO_SOFT_VOL
                             change_volume(volume);
+#endif
                             volume_write = 1;
                             status_bar_right_update();
                         }
@@ -2197,7 +2202,9 @@ void core1()
                                 if (volume != 0)
                                 {
                                     volume--;
+#ifdef NO_SOFT_VOL
                                     change_volume(volume);
+#endif
                                     volume_write = 1;
                                     status_bar_right_update();
                                 }

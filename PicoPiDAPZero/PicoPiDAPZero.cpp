@@ -44,6 +44,8 @@ uint32_t sampling_rate_pre = 0;
 
 volatile bool wav_playing = true;
 
+volatile uint8_t volume_pre = 0;
+
 #ifndef NO_SOFT_VOL
 #include <math.h>
 void change_volume(uint8_t vol)
@@ -420,6 +422,8 @@ void music_decoder_start()
 
     play_start = to_ms_since_boot(get_absolute_time());
     music_playing = true;
+    change_volume(0);
+    volume_pre = 0;
 }
 
 void seek_audio()
@@ -926,6 +930,12 @@ int main()
         {
             write_digital_filter();
             digital_filter_write = false;
+        }
+
+        if (volume != volume_pre)
+        {
+            change_volume(volume);
+            volume_pre = volume;
         }
 
         music_playing_pre = music_playing;
