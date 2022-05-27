@@ -343,13 +343,9 @@ void music_decoder_start()
 #endif
 
 #ifdef DAC_DacPlusPro
-            DacPlusPro_change_bit_freq(pico_tag1->bits_per_sample, pico_tag1->sampling_rate);
-#endif
-
-#ifdef DAC_DacPlusPro
-            DacPlusPro_change_bit_freq(pico_tag1->bits_per_sample, pico_tag1->sampling_rate);
+            DacPlusPro_change_bit_freq(32, pico_tag1->sampling_rate);
 #else
-            si5351_set_clock(pico_tag1->bits_per_sample, pico_tag1->sampling_rate);
+            si5351_set_clock(32, pico_tag1->sampling_rate);
 #endif
 
             sleep_ms(50);
@@ -395,15 +391,9 @@ void music_decoder_start()
 #endif
 
 #ifdef DAC_DacPlusPro
-            DacPlusPro_change_bit_freq(pico_tag1->bits_per_sample, pico_tag1->sampling_rate);
-#endif
-
-            sleep_ms(10);
-
-#ifdef DAC_DacPlusPro
-            DacPlusPro_change_bit_freq(pico_tag1->bits_per_sample, pico_tag1->sampling_rate);
+            DacPlusPro_change_bit_freq(32, pico_tag1->sampling_rate);
 #else
-            si5351_set_clock(pico_tag1->bits_per_sample, pico_tag1->sampling_rate);
+            si5351_set_clock(32, pico_tag1->sampling_rate);
 #endif
 
             sleep_ms(50);
@@ -646,9 +636,9 @@ int main()
 
 #ifdef DAC_DacPlusPro
     DacPlusPro_setup();
-    DacPlusPro_change_bit_freq(16, 44100);
+    DacPlusPro_change_bit_freq(32, 44100);
 #else
-    si5351_set_clock(16, 44100);
+    si5351_set_clock(32, 44100);
 #endif
 
     set_sys_clock_pll(1596 * MHZ, 6, 2); // 133MHz

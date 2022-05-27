@@ -38,91 +38,71 @@ bool play_stop = false;
 float gain_wav = 1.0;
 uint32_t wav_end_byte = 0;
 
+int16_t *wav_buff;
+int32_t vol_db;
+
 #ifndef NO_SOFT_VOL
+static const int vol_div  = 1 << 16;
 void soft_gain(int buffsel)
 {
-    if (bit_num_playing == 16)
+    for (int i = 0; i < i2s_buff_size; i += 2)
     {
-        for (int i = 0; i < i2s_buff_size; i++)
-        {
-            i2s_buff[buffsel][i] *= gain_wav;
-        }
-    }
-    else if (bit_num_playing == 24)
-    {
-        for (int i = 0; i < i2s_buff_size; i += 3)
-        {
-            uint8_t *buff_8 = (uint8_t *)&i2s_buff[buffsel][i];
-            int32_t buff_gained_32[2];
-            uint8_t *buff_gained_8 = (uint8_t *)&buff_gained_32;
-
-            *(buff_gained_8++) = 0;
-            buff_8 += 2;
-            *(buff_gained_8++) = *(buff_8--);
-            *(buff_gained_8++) = *(buff_8--);
-            *(buff_gained_8++) = *(buff_8--);
-            *(buff_gained_8++) = 0;
-            buff_8 = (uint8_t *)&i2s_buff[buffsel][i] + 5;
-            *(buff_gained_8++) = *(buff_8--);
-            *(buff_gained_8++) = *(buff_8--);
-            *(buff_gained_8++) = *(buff_8--);
-
-            buff_8 = (uint8_t *)&i2s_buff[buffsel][i];
-            buff_gained_8 = (uint8_t *)&buff_gained_32;
-
-            buff_gained_32[0] *= gain_wav;
-            buff_gained_32[1] *= gain_wav;
-
-            buff_gained_8 += 3;
-            *(buff_8++) = *(buff_gained_8--);
-            *(buff_8++) = *(buff_gained_8--);
-            *(buff_8++) = *(buff_gained_8--);
-            buff_gained_8 = (uint8_t *)&buff_gained_32[1] + 3;
-            *(buff_8++) = *(buff_gained_8--);
-            *(buff_8++) = *(buff_gained_8--);
-            *(buff_8++) = *(buff_gained_8--);
-        }
-    }
-    else // 32bit
-    {
-        for (int i = 0; i < i2s_buff_size; i += 2)
-        {
-            int16_t *buff_16 = (int16_t *)&i2s_buff[buffsel][i];
-            int32_t buff_gained_32[1];
-            int16_t *buff_gained_16 = (int16_t *)&buff_gained_32;
-            buff_16 += 1;
-            *(buff_gained_16++) = *(buff_16--);
-            *(buff_gained_16++) = *(buff_16--);
-
-            buff_gained_32[0] *= gain_wav;
-
-            *(++buff_16) = *(--buff_gained_16);
-            *(++buff_16) = *(--buff_gained_16);
-        }
+        int32_t *buff_i2s_32 = (int32_t *)&i2s_buff[buffsel][i];
+        int32_t *buff_wav_32 = (int32_t *)&wav_buff[i];
+        // buff_i2s_32[0] = buff_wav_32[0] * gain_wav;
+        buff_i2s_32[0] = (int32_t)(((int64_t)buff_wav_32[0] * (int64_t)vol_db) / (int64_t)vol_div);
     }
 }
 #endif
 
-void change_endian()
+void convert_24_to_32()
 {
-    uint8_t *buff_8 = (uint8_t *)&i2s_buff[(int_count_i2s + 1) % 2][0];
+    uint8_t *buff_8 = (uint8_t *)&wav_buff[0];
     uint8_t tmp[3];
-    for (int i = 0; i < i2s_buff_size * 2; i += 3)
+    int num24bit_count = i2s_buff_size * 2 * 3 / 4 - 1;
+    for (int i = (i2s_buff_size * 2 - 1); i > 0; i -= 4)
     {
-        tmp[0] = buff_8[i + 0];
-        // tmp[1] = buff_8[i + 1];
-        tmp[2] = buff_8[i + 2];
-        buff_8[i + 2] = tmp[0];
-        // buff_8[i + 1] = tmp[1];
-        buff_8[i + 0] = tmp[2];
+        tmp[2] = buff_8[num24bit_count--];
+        tmp[1] = buff_8[num24bit_count--];
+        tmp[0] = buff_8[num24bit_count--];
+        buff_8[i - 0] = tmp[2];
+        buff_8[i - 1] = tmp[1];
+        buff_8[i - 2] = tmp[0];
+        buff_8[i - 3] = 0;
+    }
+}
+
+void convert_16_to_32()
+{
+    uint8_t *buff_8 = (uint8_t *)&wav_buff[0];
+    uint8_t tmp[2];
+    int num16bit_count = i2s_buff_size - 1;
+    for (int i = (i2s_buff_size * 2 - 1); i > 0; i -= 4)
+    {
+        tmp[1] = buff_8[num16bit_count--];
+        tmp[0] = buff_8[num16bit_count--];
+        buff_8[i - 0] = tmp[1];
+        buff_8[i - 1] = tmp[0];
+        buff_8[i - 2] = 0;
+        buff_8[i - 3] = 0;
     }
 }
 
 void wav_start(uint8_t bit_num)
 {
     i2s_buff_size = i2s_buff_size_wav;
-    init_i2s(bit_num);
+    init_i2s(32);
     bit_num_playing = bit_num;
+
+    if (!wav_buff)
+    {
+        wav_buff = new (std::nothrow) int16_t [i2s_buff_size_wav + 4];
+        if (wav_buff == NULL)
+        {
+            return;
+        }
+        memset(&wav_buff[0], 0, (i2s_buff_size * 2 + 4));
+    }
 }
 
 void wav_open(string wav_file_path)
@@ -172,39 +152,67 @@ bool wav_loop()
     }
     if (int_count_i2s > (i2s_buff_count - 1))
     {
+        uint32_t bytes_to_read;
+        if (bit_num_playing == 16)
+        {
+            bytes_to_read = i2s_buff_size;
+        }
+        else if (bit_num_playing == 24)
+        {
+            bytes_to_read = i2s_buff_size * 2 * 3 / 4;
+        }
+        else // 32bit
+        {
+            bytes_to_read = i2s_buff_size * 2;
+        }
+
         if (wav_end_byte != 0)
         {
-            if ((f_tell(&f_wav) + i2s_buff_size * 2) > wav_end_byte)
+            if ((f_tell(&f_wav) + bytes_to_read) > wav_end_byte)
             {
-                f_read(&f_wav, &i2s_buff[(int_count_i2s + 1) % 2][0], (wav_end_byte - f_tell(&f_wav)), &byte_read);
+                f_read(&f_wav, &wav_buff[0], (wav_end_byte - f_tell(&f_wav)), &byte_read);
                 if (bit_num_playing == 24)
                 {
-                    change_endian();
+                    convert_24_to_32();
+                }
+                else if (bit_num_playing == 16)
+                {
+                    convert_16_to_32();
                 }
             }
             else
             {
-                f_read(&f_wav, &i2s_buff[(int_count_i2s + 1) % 2][0], i2s_buff_size * 2, &byte_read);
+                f_read(&f_wav, &wav_buff[0], bytes_to_read, &byte_read);
                 if (bit_num_playing == 24)
                 {
-                    change_endian();
+                    convert_24_to_32();
+                }
+                else if (bit_num_playing == 16)
+                {
+                    convert_16_to_32();
                 }
             }
         }
         else
         {
-            f_read(&f_wav, &i2s_buff[(int_count_i2s + 1) % 2][0], i2s_buff_size * 2, &byte_read);
+            f_read(&f_wav, &wav_buff[0], bytes_to_read, &byte_read);
             if (bit_num_playing == 24)
             {
-                change_endian();
+                convert_24_to_32();
+            }
+            else if (bit_num_playing == 16)
+            {
+                convert_16_to_32();
             }
         }
 
 #ifndef NO_SOFT_VOL
         soft_gain((int_count_i2s + 1) % 2);
+#else
+        memcpy(&i2s_buff[(int_count_i2s + 1) % 2][0], wav_buff, i2s_buff_size * 2);
 #endif
 
-        if (byte_read != i2s_buff_size * 2)
+        if (byte_read != bytes_to_read)
         {
             return false;
         }
@@ -238,9 +246,13 @@ void wav_end()
     {
         f_close(&f_wav);
     }
+
+    delete[] wav_buff;
+    wav_buff = NULL;
 }
 
 void wav_set_gain(float gain)
 {
     gain_wav = gain;
+    vol_db = (int32_t)(gain * (float)(1 << 16));
 }

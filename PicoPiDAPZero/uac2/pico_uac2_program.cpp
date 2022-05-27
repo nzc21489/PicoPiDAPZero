@@ -23,6 +23,8 @@
  *
  */
 
+#pragma GCC optimize("O3")
+
 #include "pico_uac2_program.h"
 #include "bsp/board.h"
 #include <cstdio>
@@ -104,7 +106,7 @@ void got_audio_buffer(int bytes_received)
         i2s_buff_num = i2s_buf_size_uac2;
         printf("bit = %d\n", bit_uac2);
 
-        if (init_i2s(bit_uac2) != 0)
+        if (init_i2s(32) != 0)
         {
             bit_uac2 = -1;
             freq_uac2 = -1;
@@ -119,11 +121,10 @@ void got_audio_buffer(int bytes_received)
 
         while ((count < bytes_received) && (count_tmp < i2s_buff_size * 2))
         {
-            buff_8[count_tmp + 0] = spk_buf_8[count + 2];
-            buff_8[count_tmp + 1] = spk_buf_8[count + 1];
-            buff_8[count_tmp + 2] = spk_buf_8[count + 0];
-            count += 3;
-            count_tmp += 3;
+            buff_8[count_tmp++] = 0;
+            buff_8[count_tmp++] = spk_buf_8[count++];
+            buff_8[count_tmp++] = spk_buf_8[count++];
+            buff_8[count_tmp++] = spk_buf_8[count++];
         }
 
         if (count_tmp >= i2s_buff_size * 2)
@@ -138,21 +139,21 @@ void got_audio_buffer(int bytes_received)
             {
                 while ((count < bytes_received) && (count_tmp < i2s_buff_size * 2))
                 {
-                    buff_8[count_tmp + 0] = spk_buf_8[count + 2];
-                    buff_8[count_tmp + 1] = spk_buf_8[count + 1];
-                    buff_8[count_tmp + 2] = spk_buf_8[count + 0];
-                    count += 3;
-                    count_tmp += 3;
+                    buff_8[count_tmp++] = 0;
+                    buff_8[count_tmp++] = spk_buf_8[count++];
+                    buff_8[count_tmp++] = spk_buf_8[count++];
+                    buff_8[count_tmp++] = spk_buf_8[count++];
                 }
             }
         }
     }
-    else
+    else // 16bit
     {
         int16_t *spk_buf_16 = (int16_t *)&spk_buf[spk_buf_cnt][0];
         volatile int count = 0;
         while ((count < bytes_received / 2) && (count_tmp < i2s_buff_size))
         {
+            count_tmp++;
             i2s_buff[(i2s_buff_count + 0) % i2s_buf_size_uac2][count_tmp++] = spk_buf_16[count++];
         }
 
@@ -167,6 +168,7 @@ void got_audio_buffer(int bytes_received)
             {
                 while ((count < bytes_received / 2) && (count_tmp < i2s_buff_size))
                 {
+                    count_tmp++;
                     i2s_buff[(i2s_buff_count + 0) % i2s_buf_size_uac2][count_tmp++] = spk_buf_16[count++];
                 }
             }
@@ -193,13 +195,13 @@ void audio_task_pico(int resolution, int sample_rate)
 #endif
 
 #ifdef DAC_DacPlusPro
-            DacPlusPro_change_bit_freq(resolution, sample_rate);
+            DacPlusPro_change_bit_freq(32, sample_rate);
 #endif
 
 #ifdef DAC_DacPlusPro
 
 #else
-            si5351_set_clock(resolution, sample_rate);
+            si5351_set_clock(32, sample_rate);
 #endif
 
             i2s_start();
