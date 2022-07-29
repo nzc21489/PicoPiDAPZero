@@ -31,6 +31,10 @@
 
 #ifdef DAC_Zero_HAT_DAC_CS4398
 #include "si5351_reg_Zero_HAT_DAC_CS4398.h"
+#elif defined(DAC_fpga)
+#include "si5351_reg_fpga_dac.h"
+#elif defined(DAC_fpga_ext_clk)
+#include "si5351_reg_fpga_dac_ext_clk.h"
 #else
 #include "si5351_reg.h"
 #endif

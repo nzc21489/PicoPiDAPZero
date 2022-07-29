@@ -39,6 +39,10 @@ static const string dac_picopidap_zero = "       Zero HAT DAC CS4398";
 static const string dac_picopidap_zero = "           DacPlusPro";
 #elif defined(DAC_DacPlusPro) && !defined(NO_SOFT_VOL)
 static const string dac_picopidap_zero = "       DacPlusPro Soft Vol";
+#elif defined(DAC_FPGA_DeltaSigma)
+static const string dac_picopidap_zero = "         FPGA DeltaSigma";
+#elif defined(DAC_FPGA_DeltaSigma_ExtClk)
+static const string dac_picopidap_zero = "      FPGA DeltaSigma ExtClk";
 #else
 static const string dac_picopidap_zero = "";
 #endif

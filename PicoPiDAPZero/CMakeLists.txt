@@ -127,3 +127,47 @@ pico_enable_stdio_usb(PicoPiDAPZero_Zero_HAT_DAC_CS4398 1)
 
 pico_add_extra_outputs(PicoPiDAPZero_Zero_HAT_DAC_CS4398)
 #--------------------------------------------
+
+#-- Pico Pi DAP Zero + FPGA_DeltaSigma --
+add_executable(PicoPiDAPZero_FPGA_DeltaSigma
+        PicoPiDAPZero.cpp
+        PicoPiDAPZero_core1.cpp
+        PicoPiDAPZero_wav.cpp
+        getDirectoryList.cpp
+        split.cpp
+        bmp_shinonome16.cpp
+        usb_serial.c
+        )
+
+target_compile_definitions(PicoPiDAPZero_FPGA_DeltaSigma PRIVATE
+    DAC_FPGA_DeltaSigma=1
+)
+
+target_link_libraries(PicoPiDAPZero_FPGA_DeltaSigma pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_fpga_dac tinyusb_device tinyusb_board pico_uac2)
+
+pico_enable_stdio_usb(PicoPiDAPZero_FPGA_DeltaSigma 1)
+
+pico_add_extra_outputs(PicoPiDAPZero_FPGA_DeltaSigma)
+#-------------------------------------
+
+#-- Pico Pi DAP Zero + FPGA_DeltaSigma_EXT_CLK --
+add_executable(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK
+        PicoPiDAPZero.cpp
+        PicoPiDAPZero_core1.cpp
+        PicoPiDAPZero_wav.cpp
+        getDirectoryList.cpp
+        split.cpp
+        bmp_shinonome16.cpp
+        usb_serial.c
+        )
+
+target_compile_definitions(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK PRIVATE
+    DAC_FPGA_DeltaSigma_ExtClk=1
+)
+
+target_link_libraries(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_fpga_dac_ext_clk tinyusb_device tinyusb_board pico_uac2)
+
+pico_enable_stdio_usb(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK 1)
+
+pico_add_extra_outputs(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK)
+#-------------------------------------
