@@ -40,8 +40,29 @@ int send_i2c(uint8_t reg, uint8_t value)
     return bw;
 }
 
+void high_z_si5351()
+{
+    const uint8_t ADDR_Si5351 = 0x60;
+    uint8_t si5351_reg = 0;
+    uint8_t si5351_data = 0;
+    int bw = i2c_write_blocking(i2c_port_DacPlusPro, ADDR_Si5351, &si5351_reg, 1, true);
+    if (bw > 0)
+    {
+        bw = i2c_read_blocking(i2c_port_DacPlusPro, ADDR_Si5351, &si5351_data, 1, false);
+        if (bw > 0)
+        {
+            si5351_reg = 24;
+            // printf("Si5351_REVID = %d\n", (si5351_data & 0b11));
+            si5351_data = 0b10101010;
+            bw = i2c_write_blocking(i2c_port_DacPlusPro, ADDR_Si5351, &si5351_reg, 2, false);
+        }
+    }
+}
+
 void DacPlusPro_setup()
 {
+    high_z_si5351();
+
     // standby
     send_i2c(2, 0b10000);
 
