@@ -81,6 +81,29 @@ pico_add_extra_outputs(PicoPiDAPZero_DacPlusPro)
 #------------------------------------------
 
 
+#-- Pico Pi DAP Zero + HiFiBerry DAC+ Pro SoftVol--
+add_executable(PicoPiDAPZero_DacPlusPro_SoftVol
+        PicoPiDAPZero.cpp
+        PicoPiDAPZero_core1.cpp
+        PicoPiDAPZero_wav.cpp
+        getDirectoryList.cpp
+        split.cpp
+        bmp_shinonome16.cpp
+        usb_serial.c
+        DacPlusPro.cpp
+        )
+
+target_compile_definitions(PicoPiDAPZero_DacPlusPro_SoftVol PRIVATE
+    DAC_DacPlusPro=1
+)
+        
+target_link_libraries(PicoPiDAPZero_DacPlusPro_SoftVol pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico pico_tag tft_espi TJpg_Decoder hardware_pwm si5351 tinyusb_device tinyusb_board pico_uac2_DacPlusPro)
+
+pico_enable_stdio_usb(PicoPiDAPZero_DacPlusPro_SoftVol 1)
+
+pico_add_extra_outputs(PicoPiDAPZero_DacPlusPro_SoftVol)
+#------------------------------------------
+
 #-- Pico Pi DAP Zero + Zero_HAT_DAC_CS4398 --
 add_executable(PicoPiDAPZero_Zero_HAT_DAC_CS4398
         PicoPiDAPZero.cpp

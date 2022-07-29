@@ -260,7 +260,7 @@ void change_volume(uint8_t vol)
 }
 #endif
 
-#ifdef DAC_DacPlusPro
+#if defined(DAC_DacPlusPro) && defined(NO_SOFT_VOL)
 void change_volume(uint8_t vol)
 {
     change_volume_DacPlusPro(vol);

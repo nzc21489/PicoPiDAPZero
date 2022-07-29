@@ -35,8 +35,10 @@ static const string version_picopidap_zero = "         Version 0.2.3";
 static const string dac_picopidap_zero = "             CS4398";
 #elif defined(DAC_Zero_HAT_DAC_CS4398)
 static const string dac_picopidap_zero = "       Zero HAT DAC CS4398";
-#elif defined(DAC_DacPlusPro)
+#elif defined(DAC_DacPlusPro) && defined(NO_SOFT_VOL)
 static const string dac_picopidap_zero = "           DacPlusPro";
+#elif defined(DAC_DacPlusPro) && !defined(NO_SOFT_VOL)
+static const string dac_picopidap_zero = "       DacPlusPro Soft Vol";
 #else
 static const string dac_picopidap_zero = "";
 #endif

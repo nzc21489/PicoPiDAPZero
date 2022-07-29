@@ -208,6 +208,12 @@ void DacPlusPro_change_bit_freq(uint8_t bit, uint32_t freq)
     // normal operation
     send_i2c(2, 0b0);
 
+#ifndef NO_SOFT_VOL
+    // change volume
+    send_i2c(61, vol_max);
+    send_i2c(62, vol_max);
+#endif
+
     // unmute
     send_i2c(3, 0b0);
 }
