@@ -422,8 +422,11 @@ void music_decoder_start()
 
     play_start = to_ms_since_boot(get_absolute_time());
     music_playing = true;
+
+#ifndef NO_SOFT_VOL
     change_volume(0);
     volume_pre = 0;
+#endif
 }
 
 void seek_audio()
@@ -932,11 +935,13 @@ int main()
             digital_filter_write = false;
         }
 
+#ifndef NO_SOFT_VOL
         if (volume != volume_pre)
         {
             change_volume(volume);
             volume_pre = volume;
         }
+#endif
 
         music_playing_pre = music_playing;
     }
