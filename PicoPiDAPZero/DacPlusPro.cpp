@@ -229,6 +229,9 @@ void DacPlusPro_change_bit_freq(uint8_t bit, uint32_t freq)
     // normal operation
     send_i2c(2, 0b0);
 
+    // right volume = left volume
+    send_i2c(60, 1);
+
 #ifndef NO_SOFT_VOL
     // change volume
     send_i2c(61, vol_max);
@@ -251,13 +254,16 @@ void DacPlusPro_unmute()
 
 void change_volume_DacPlusPro(uint8_t vol)
 {
-    uint8_t vol_value_send = (vol_max - vol_min) * vol / 100;
+    uint8_t vol_value_send = vol_min - ((vol_min - vol_max) * vol / 100);
+
     if (vol == 0)
     {
         vol_value_send = vol_min;
     }
-    send_i2c(61, vol_value_send);
+    sleep_ms(2);
     send_i2c(62, vol_value_send);
+    sleep_ms(2);
+    send_i2c(61, vol_value_send);
 }
  
 void DacPlusPro_change_digital_filter(int digital_filter)
