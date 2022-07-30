@@ -2515,7 +2515,7 @@ void core1()
                 digital_filter--;
                 if (digital_filter < 0)
                 {
-                    digital_filter = digital_filter_nums[digital_filter_num - 1];
+                    digital_filter = digital_filter_num - 1;
                 }
                 information_string[6] = digital_filter_strs[digital_filter];
                 information_tft();
