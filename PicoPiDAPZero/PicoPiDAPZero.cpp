@@ -135,6 +135,19 @@ bool init_sd()
         }
 #endif
 
+        fr = f_open(&fil, (pmp_path + "/" + pmp_playing_mode).c_str(), FA_READ | FA_OPEN_EXISTING);
+        if (fr == FR_OK)
+        {
+            char line[100];
+            f_gets(line, sizeof(line), &fil);
+            string p_m = line;
+            if (p_m.size() > 0)
+            {
+                playing_mode = stoi(p_m);
+            }
+            f_close(&fil);
+        }
+
         f_closedir(&dir);
     }
     else
@@ -215,6 +228,19 @@ void music_decoder_start()
             f_close(&fil);
         }
         volume_write = false;
+    }
+
+    if (playing_mode_write)
+    {
+        fr = f_open(&fil, (pmp_path + "/" + pmp_playing_mode).c_str(), FA_WRITE | FA_CREATE_ALWAYS);
+        if (fr == FR_OK)
+        {
+            char buff;
+            UINT bw;
+            f_write(&fil, (to_string(playing_mode)).c_str(), strlen((to_string(playing_mode)).c_str()), &bw);
+            f_close(&fil);
+        }
+        playing_mode_write = false;
     }
 
     string file_name = musics[music_select];
@@ -807,6 +833,43 @@ int main()
                                     }
                                     music_playing = false;
                                     pause = false;
+                                }
+                            }
+                            else if (playing_mode == playing_mode_repeat_directory)
+                            {
+                                if (music_select < (musics.size() - 1))
+                                {
+                                    music_select++;
+                                    player_screen_rotate_num = 1;
+                                    rotate_count = 0xffff - 1;
+                                    play_start = to_ms_since_boot(get_absolute_time());
+                                    string music_filename = music_path + "/" + musics[music_select];
+                                    if (pico_tag1)
+                                    {
+                                        delete pico_tag1;
+                                        pico_tag1 = NULL;
+                                    }
+                                    pico_tag1 = pico_tag_get_tag(music_filename);
+                                    duration = pico_tag1->duration;
+                                    player_screen_update = true;
+                                    music_decoder_start();
+                                }
+                                else
+                                {
+                                    music_select = 0;
+                                    player_screen_rotate_num = 1;
+                                    rotate_count = 0xffff - 1;
+                                    play_start = to_ms_since_boot(get_absolute_time());
+                                    string music_filename = music_path + "/" + musics[music_select];
+                                    if (pico_tag1)
+                                    {
+                                        delete pico_tag1;
+                                        pico_tag1 = NULL;
+                                    }
+                                    pico_tag1 = pico_tag_get_tag(music_filename);
+                                    duration = pico_tag1->duration;
+                                    player_screen_update = true;
+                                    music_decoder_start();
                                 }
                             }
                             else if(playing_mode == playing_mode_repeat_all)

@@ -146,10 +146,12 @@ extern string pmp_file;
 extern string pmp_file2;
 extern string pmp_path;
 extern string pmp_vol;
+extern string pmp_playing_mode;
 
 extern volatile bool file_exist;
 extern volatile bool volume_write;
 extern volatile bool album_art_write;
+extern volatile bool playing_mode_write;
 
 extern volatile uint16_t rotate_count;
 extern volatile uint8_t player_screen_rotate_num;
@@ -195,10 +197,11 @@ enum playing_mode_type
 {
     playing_mode_normal,
     playing_mode_repeat_1,
+    playing_mode_repeat_directory,
     playing_mode_repeat_all,
 };
 
-#define playing_mode_num 3
+#define playing_mode_num 4
 
 extern volatile bool repeat_next;
 extern string jpeg_file_name;

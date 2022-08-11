@@ -145,10 +145,12 @@ string pmp_file = "file.txt";
 string pmp_file2 = "file2.txt";
 string pmp_path = ".ppdap";
 string pmp_vol = "volume.txt";
+string pmp_playing_mode = "playing_mode.txt";
 
 volatile bool file_exist = false;
 volatile bool volume_write = false;
 volatile bool album_art_write = false;
+volatile bool playing_mode_write = false;
 
 volatile uint16_t rotate_count = 0;
 volatile bool font_larger_than_tft[14] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false};
@@ -769,6 +771,12 @@ void status_bar_left_update(uint8_t play_mode)
     case playing_mode_repeat_1:
         spr_status_bar[status_bar_left].loadFont(num_font);
         spr_status_bar[status_bar_left].print(" R1");
+        spr_status_bar[status_bar_left].unloadFont();
+        break;
+
+    case playing_mode_repeat_directory:
+        spr_status_bar[status_bar_left].loadFont(num_font);
+        spr_status_bar[status_bar_left].print(" RD");
         spr_status_bar[status_bar_left].unloadFont();
         break;
 
@@ -2289,6 +2297,7 @@ void core1()
             {
                 playing_mode++;
                 playing_mode %= playing_mode_num;
+                playing_mode_write = true;
                 if (music_playing)
                 {
                     status_bar_left_update(true);
