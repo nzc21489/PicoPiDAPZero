@@ -171,3 +171,27 @@ pico_enable_stdio_usb(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK 1)
 
 pico_add_extra_outputs(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK)
 #-------------------------------------
+
+#-- Pico Pi DAP Zero + PCM1795 --
+add_executable(PicoPiDAPZero_PCM1795
+        PicoPiDAPZero.cpp
+        PicoPiDAPZero_core1.cpp
+        PicoPiDAPZero_wav.cpp
+        getDirectoryList.cpp
+        split.cpp
+        bmp_shinonome16.cpp
+        usb_serial.c
+        pcm1795.cpp
+        )
+
+target_compile_definitions(PicoPiDAPZero_PCM1795 PRIVATE
+    DAC_PCM1795=1
+    NO_SOFT_VOL=1
+)
+        
+target_link_libraries(PicoPiDAPZero_PCM1795 pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351 tinyusb_device tinyusb_board pico_uac2)
+
+pico_enable_stdio_usb(PicoPiDAPZero_PCM1795 1)
+
+pico_add_extra_outputs(PicoPiDAPZero_PCM1795)
+#------------------------------------------

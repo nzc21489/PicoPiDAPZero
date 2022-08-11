@@ -1,4 +1,4 @@
- /*
+/* 
  * The MIT License (MIT)
  *
  * Copyright (c) 2022 nzc21489
@@ -23,30 +23,52 @@
  *
  */
 
-#ifndef VERSION_PICOPIDAP_ZERO_H
-#define VERSION_PICOPIDAP_ZERO_H
+#include "pcm1795.h"
 
-#include <string>
-using namespace std;
+#include "hardware/i2c.h"
 
-static const string version_picopidap_zero = "         Version 0.2.4";
+#define i2c_port_pcm7195 i2c1
 
-#if defined(DAC_CS4398)
-static const string dac_picopidap_zero = "             CS4398";
-#elif defined(DAC_Zero_HAT_DAC_CS4398)
-static const string dac_picopidap_zero = "       Zero HAT DAC CS4398";
-#elif defined(DAC_DacPlusPro) && defined(NO_SOFT_VOL)
-static const string dac_picopidap_zero = "           DacPlusPro";
-#elif defined(DAC_DacPlusPro) && !defined(NO_SOFT_VOL)
-static const string dac_picopidap_zero = "       DacPlusPro Soft Vol";
-#elif defined(DAC_FPGA_DeltaSigma)
-static const string dac_picopidap_zero = "         FPGA DeltaSigma";
-#elif defined(DAC_FPGA_DeltaSigma_ExtClk)
-static const string dac_picopidap_zero = "      FPGA DeltaSigma ExtClk";
-#elif defined(DAC_PCM1795)
-static const string dac_picopidap_zero = "             PCM1795";
-#else
-static const string dac_picopidap_zero = "";
-#endif
+uint8_t pcm1795_filter = 0;
 
-#endif // VERSION_PICOPIDAP_ZERO_H
+int send_i2c(uint8_t reg, uint8_t value)
+{
+    uint8_t reg_data[2];
+    reg_data[0] = reg;
+    reg_data[1] = value;
+    int bw = i2c_write_blocking(i2c_port_pcm7195, pcm1795_address, &reg_data[0], 2, false);
+    return bw;
+}
+
+void pcm1795_setup()
+{
+    sleep_ms(50);
+    
+    // set format I2S 32bit, Attenuation enable
+    send_i2c(18, 0b11000000);
+
+    change_volume_pcm1795(vol_min);
+    send_i2c(18, 0b11000000);
+}
+
+void change_volume_pcm1795(uint8_t vol)
+{
+    uint8_t vol_value_send = ((vol_max - vol_min) * vol / 100) + vol_min;
+
+    if (vol == 0)
+    {
+        vol_value_send = vol_min;
+    }
+    send_i2c(16, vol_value_send);
+    send_i2c(17, vol_value_send);
+    send_i2c(18, 0b11000000); // update volume
+}
+ 
+void pcm1795_change_digital_filter(int digital_filter)
+{
+    if ((digital_filter == 0) || (digital_filter == 1))
+    {
+        // digital filter
+        send_i2c(19, (digital_filter << 1));
+    }
+} 

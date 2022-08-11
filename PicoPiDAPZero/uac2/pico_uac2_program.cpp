@@ -57,6 +57,10 @@ void pico_uac2_init()
 #ifdef DAC_DacPlusPro
     change_volume_DacPlusPro(100);
 #endif
+
+#ifdef DAC_PC1795
+    change_volume_pcm1795(100);
+#endif
 }
 
 void stop_i2s()

@@ -1,4 +1,4 @@
- /*
+/* 
  * The MIT License (MIT)
  *
  * Copyright (c) 2022 nzc21489
@@ -23,30 +23,36 @@
  *
  */
 
-#ifndef VERSION_PICOPIDAP_ZERO_H
-#define VERSION_PICOPIDAP_ZERO_H
+#ifndef PCM1795
+#define PCM1795
 
+#include "stdint.h"
 #include <string>
+
 using namespace std;
 
-static const string version_picopidap_zero = "         Version 0.2.4";
+#define pcm1795_address 0x4C
+#define vol_min 0b00001110
+#define vol_max 0b11111111
 
-#if defined(DAC_CS4398)
-static const string dac_picopidap_zero = "             CS4398";
-#elif defined(DAC_Zero_HAT_DAC_CS4398)
-static const string dac_picopidap_zero = "       Zero HAT DAC CS4398";
-#elif defined(DAC_DacPlusPro) && defined(NO_SOFT_VOL)
-static const string dac_picopidap_zero = "           DacPlusPro";
-#elif defined(DAC_DacPlusPro) && !defined(NO_SOFT_VOL)
-static const string dac_picopidap_zero = "       DacPlusPro Soft Vol";
-#elif defined(DAC_FPGA_DeltaSigma)
-static const string dac_picopidap_zero = "         FPGA DeltaSigma";
-#elif defined(DAC_FPGA_DeltaSigma_ExtClk)
-static const string dac_picopidap_zero = "      FPGA DeltaSigma ExtClk";
-#elif defined(DAC_PCM1795)
-static const string dac_picopidap_zero = "             PCM1795";
-#else
-static const string dac_picopidap_zero = "";
-#endif
+#define pmp_digital_filter "PCM1795.txt"
 
-#endif // VERSION_PICOPIDAP_ZERO_H
+#define digital_filter_num 2
+extern uint8_t DacPlusPro_filter;
+static const uint8_t digital_filter_nums[4] = {
+    1,
+    2,
+    3,
+    7
+};
+
+static const string digital_filter_strs[2] = {
+    "         Sharp roll-off",
+    "         Slow roll-off"
+};
+
+extern void pcm1795_setup();
+extern void change_volume_pcm1795(uint8_t vol);
+extern void pcm1795_change_digital_filter(int digital_filter);
+
+#endif //PCM1795 

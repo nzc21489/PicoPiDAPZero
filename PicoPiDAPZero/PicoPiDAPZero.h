@@ -84,6 +84,10 @@
 #include "cs4398.h"
 #endif
 
+#ifdef DAC_PCM1795
+#include "pcm1795.h"
+#endif
+
 #ifdef DAC_DacPlusPro
 #include "DacPlusPro.h"
 #endif
