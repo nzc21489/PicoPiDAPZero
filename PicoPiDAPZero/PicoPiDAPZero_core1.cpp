@@ -274,6 +274,13 @@ void change_volume(uint8_t vol)
 }
 #endif
 
+#if defined(DAC_AK449X)
+void change_volume(uint8_t vol)
+{
+    change_volume_ak449x(vol);
+}
+#endif
+
 void change_digital_filter()
 {
 #if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
@@ -282,6 +289,8 @@ void change_digital_filter()
     DacPlusPro_change_digital_filter(digital_filter_nums[digital_filter]);
 #elif defined(DAC_PCM1795)
     pcm1795_change_digital_filter(digital_filter_nums[digital_filter]);
+#elif defined(DAC_AK449X)
+    ak449x_change_digital_filter(digital_filter_nums[digital_filter]);
 #else
 
 #endif

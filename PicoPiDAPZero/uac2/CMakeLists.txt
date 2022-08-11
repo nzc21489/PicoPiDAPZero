@@ -59,5 +59,5 @@ target_compile_definitions(pico_uac2_Zero_HAT_DAC_CS4398 PRIVATE
 )
 
 target_link_libraries(pico_uac2_Zero_HAT_DAC_CS4398 pico_stdlib tinyusb_device
-  tinyusb_board pico_audio_i2s si5351_Zero_HAT_DAC_CS4398 hardware_i2c)
+  tinyusb_board pico_audio_i2s si5351_EXT_CLK hardware_i2c)
 #--------------------------------------------

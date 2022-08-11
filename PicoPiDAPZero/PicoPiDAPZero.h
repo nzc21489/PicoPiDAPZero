@@ -88,6 +88,10 @@
 #include "pcm1795.h"
 #endif
 
+#ifdef DAC_AK449X
+#include "ak449x.h"
+#endif
+
 #ifdef DAC_DacPlusPro
 #include "DacPlusPro.h"
 #endif

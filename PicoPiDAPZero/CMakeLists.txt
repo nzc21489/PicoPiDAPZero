@@ -119,9 +119,10 @@ add_executable(PicoPiDAPZero_Zero_HAT_DAC_CS4398
 target_compile_definitions(PicoPiDAPZero_Zero_HAT_DAC_CS4398 PRIVATE
     DAC_Zero_HAT_DAC_CS4398=1
     NO_SOFT_VOL=1
+    EXT_CLK=1
 )
         
-target_link_libraries(PicoPiDAPZero_Zero_HAT_DAC_CS4398 pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_Zero_HAT_DAC_CS4398 tinyusb_device tinyusb_board pico_uac2_Zero_HAT_DAC_CS4398)
+target_link_libraries(PicoPiDAPZero_Zero_HAT_DAC_CS4398 pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_EXT_CLK tinyusb_device tinyusb_board pico_uac2_Zero_HAT_DAC_CS4398)
 
 pico_enable_stdio_usb(PicoPiDAPZero_Zero_HAT_DAC_CS4398 1)
 
@@ -194,4 +195,29 @@ target_link_libraries(PicoPiDAPZero_PCM1795 pico_stdlib hardware_i2c hardware_ad
 pico_enable_stdio_usb(PicoPiDAPZero_PCM1795 1)
 
 pico_add_extra_outputs(PicoPiDAPZero_PCM1795)
+#------------------------------------------
+
+#-- Pico Pi DAP Zero + AK449X --
+add_executable(PicoPiDAPZero_AK449X
+        PicoPiDAPZero.cpp
+        PicoPiDAPZero_core1.cpp
+        PicoPiDAPZero_wav.cpp
+        getDirectoryList.cpp
+        split.cpp
+        bmp_shinonome16.cpp
+        usb_serial.c
+        ak449x.cpp
+        )
+
+target_compile_definitions(PicoPiDAPZero_AK449X PRIVATE
+    DAC_AK449X=1
+    NO_SOFT_VOL=1
+    EXT_CLK=1
+)
+        
+target_link_libraries(PicoPiDAPZero_AK449X pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_EXT_CLK tinyusb_device tinyusb_board pico_uac2)
+
+pico_enable_stdio_usb(PicoPiDAPZero_AK449X 1)
+
+pico_add_extra_outputs(PicoPiDAPZero_AK449X)
 #------------------------------------------

@@ -648,6 +648,10 @@ int main()
     si5351_set_clock(32, 44100);
 #endif
 
+#ifdef DAC_AK449X
+    ak449x_setup();
+#endif
+
 #ifdef DAC_PCM1795
     pcm1795_setup();
 #endif

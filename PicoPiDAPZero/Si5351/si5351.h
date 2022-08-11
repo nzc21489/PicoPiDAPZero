@@ -29,8 +29,8 @@
 #include "pico/stdlib.h"
 #include "stdint.h"
 
-#ifdef DAC_Zero_HAT_DAC_CS4398
-#include "si5351_reg_Zero_HAT_DAC_CS4398.h"
+#ifdef EXT_CLK
+#include "si5351_reg_ext_clk.h"
 #elif defined(DAC_fpga)
 #include "si5351_reg_fpga_dac.h"
 #elif defined(DAC_fpga_ext_clk)

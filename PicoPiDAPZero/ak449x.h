@@ -1,4 +1,4 @@
- /*
+ /* 
  * The MIT License (MIT)
  *
  * Copyright (c) 2022 nzc21489
@@ -23,32 +23,42 @@
  *
  */
 
-#ifndef VERSION_PICOPIDAP_ZERO_H
-#define VERSION_PICOPIDAP_ZERO_H
+#ifndef AK449X
+#define AK449X
 
+#include "stdint.h"
 #include <string>
+
 using namespace std;
 
-static const string version_picopidap_zero = "         Version 0.2.4";
+#define ak449x_address 0x10
+#define vol_min 0b00000000
+#define vol_max 0b11111111
 
-#if defined(DAC_CS4398)
-static const string dac_picopidap_zero = "             CS4398";
-#elif defined(DAC_Zero_HAT_DAC_CS4398)
-static const string dac_picopidap_zero = "       Zero HAT DAC CS4398";
-#elif defined(DAC_DacPlusPro) && defined(NO_SOFT_VOL)
-static const string dac_picopidap_zero = "           DacPlusPro";
-#elif defined(DAC_DacPlusPro) && !defined(NO_SOFT_VOL)
-static const string dac_picopidap_zero = "       DacPlusPro Soft Vol";
-#elif defined(DAC_FPGA_DeltaSigma)
-static const string dac_picopidap_zero = "         FPGA DeltaSigma";
-#elif defined(DAC_FPGA_DeltaSigma_ExtClk)
-static const string dac_picopidap_zero = "      FPGA DeltaSigma ExtClk";
-#elif defined(DAC_PCM1795)
-static const string dac_picopidap_zero = "             PCM1795";
-#elif defined(DAC_AK449X)
-static const string dac_picopidap_zero = "             AK449X";
-#else
-static const string dac_picopidap_zero = "";
-#endif
+#define pmp_digital_filter "AK449X.txt"
 
-#endif // VERSION_PICOPIDAP_ZERO_H
+#define digital_filter_num 6
+
+static const uint8_t digital_filter_nums[6] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+};
+
+static const string digital_filter_strs[6] = {
+    "         Sharp roll-off",
+    "         Slow roll-off",
+    "  hort delay sharp roll-off",
+    "  Short delay slow roll-off",
+    "     Super Slow roll-off",
+    "  Low dispersion Short delay",
+};
+
+extern void ak449x_setup();
+extern void change_volume_ak449x(uint8_t vol);
+extern void ak449x_change_digital_filter(int digital_filter);
+
+#endif //AK449X 

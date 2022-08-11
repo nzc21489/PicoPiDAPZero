@@ -38,6 +38,10 @@
 #include "DacPlusPro.h"
 #endif
 
+#ifdef DAC_AK449X
+#include "ak449x.h"
+#endif
+
 volatile uint8_t spk_buf_cnt = 0;
 volatile bool uac_runnnig = false;
 
@@ -60,6 +64,10 @@ void pico_uac2_init()
 
 #ifdef DAC_PC1795
     change_volume_pcm1795(100);
+#endif
+
+#ifdef DAC_AK449X
+    change_volume_ak449x(100);
 #endif
 }
 
