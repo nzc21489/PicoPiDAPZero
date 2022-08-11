@@ -779,6 +779,43 @@ int main()
                             pause = false;
                         }
                     }
+                    else if (playing_mode == playing_mode_repeat_directory)
+                    {
+                        if (music_select < (musics.size() - 1))
+                        {
+                            music_select++;
+                            player_screen_rotate_num = 1;
+                            rotate_count = 0xffff - 1;
+                            play_start = to_ms_since_boot(get_absolute_time());
+                            string music_filename = music_path + "/" + musics[music_select];
+                            if (pico_tag1)
+                            {
+                                delete pico_tag1;
+                                pico_tag1 = NULL;
+                            }
+                            pico_tag1 = pico_tag_get_tag(music_filename);
+                            duration = pico_tag1->duration;
+                            player_screen_update = true;
+                            music_decoder_start();
+                        }
+                        else
+                        {
+                            music_select = 0;
+                            player_screen_rotate_num = 1;
+                            rotate_count = 0xffff - 1;
+                            play_start = to_ms_since_boot(get_absolute_time());
+                            string music_filename = music_path + "/" + musics[music_select];
+                            if (pico_tag1)
+                            {
+                                delete pico_tag1;
+                                pico_tag1 = NULL;
+                            }
+                            pico_tag1 = pico_tag_get_tag(music_filename);
+                            duration = pico_tag1->duration;
+                            player_screen_update = true;
+                            music_decoder_start();
+                        }
+                    }
                     else if(playing_mode == playing_mode_repeat_all)
                     {
                         next_music_repeat_all();
