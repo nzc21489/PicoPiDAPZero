@@ -122,7 +122,7 @@ target_compile_definitions(PicoPiDAPZero_Zero_HAT_DAC_CS4398 PRIVATE
     EXT_CLK=1
 )
         
-target_link_libraries(PicoPiDAPZero_Zero_HAT_DAC_CS4398 pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_EXT_CLK tinyusb_device tinyusb_board pico_uac2_Zero_HAT_DAC_CS4398)
+target_link_libraries(PicoPiDAPZero_Zero_HAT_DAC_CS4398 pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351 tinyusb_device tinyusb_board pico_uac2_Zero_HAT_DAC_CS4398)
 
 pico_enable_stdio_usb(PicoPiDAPZero_Zero_HAT_DAC_CS4398 1)
 
@@ -144,7 +144,7 @@ target_compile_definitions(PicoPiDAPZero_FPGA_DeltaSigma PRIVATE
     DAC_FPGA_DeltaSigma=1
 )
 
-target_link_libraries(PicoPiDAPZero_FPGA_DeltaSigma pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_fpga_dac tinyusb_device tinyusb_board pico_uac2)
+target_link_libraries(PicoPiDAPZero_FPGA_DeltaSigma pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico pico_tag tft_espi TJpg_Decoder hardware_pwm si5351 tinyusb_device tinyusb_board pico_uac2)
 
 pico_enable_stdio_usb(PicoPiDAPZero_FPGA_DeltaSigma 1)
 
@@ -163,10 +163,11 @@ add_executable(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK
         )
 
 target_compile_definitions(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK PRIVATE
-    DAC_FPGA_DeltaSigma_ExtClk=1
+    DAC_FPGA_DeltaSigma=1
+    EXT_CLK=1
 )
 
-target_link_libraries(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_fpga_dac_ext_clk tinyusb_device tinyusb_board pico_uac2)
+target_link_libraries(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico pico_tag tft_espi TJpg_Decoder hardware_pwm si5351 tinyusb_device tinyusb_board pico_uac2)
 
 pico_enable_stdio_usb(PicoPiDAPZero_FPGA_DeltaSigma_EXT_CLK 1)
 
@@ -215,7 +216,7 @@ target_compile_definitions(PicoPiDAPZero_AK449X PRIVATE
     EXT_CLK=1
 )
         
-target_link_libraries(PicoPiDAPZero_AK449X pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351_EXT_CLK tinyusb_device tinyusb_board pico_uac2)
+target_link_libraries(PicoPiDAPZero_AK449X pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico_NO_SOFT_VOL pico_tag tft_espi TJpg_Decoder hardware_pwm si5351 tinyusb_device tinyusb_board pico_uac2)
 
 pico_enable_stdio_usb(PicoPiDAPZero_AK449X 1)
 

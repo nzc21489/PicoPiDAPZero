@@ -23,18 +23,11 @@
  *
  */
 
-#ifndef SI5351_H
-#define SI5351_H
 
-#include "pico/stdlib.h"
-#include "stdint.h"
-#include "hardware/i2c.h"
+#ifndef SI5351_CONFIG_H
+#define SI5351_CONFIG_H
 
-#define i2c_port i2c1
-#define sda_pin 2
-#define scl_pin 3
+#define xtal_clock (25 * 1000 * 1000) // Hz, 25Mhz or 27 Mhz
+#define load_capacitance 8 //pF, 6 or 8 or 10
 
-void setup_si5351_i2c();
-bool si5351_set_clock(int clock0, int clock1, int clock2);
-
-#endif // SI5351_H
+#endif // SI5351_CONFIG_H

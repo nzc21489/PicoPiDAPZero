@@ -206,6 +206,14 @@ enum playing_mode_type
 extern volatile bool repeat_next;
 extern string jpeg_file_name;
 
+#ifdef DAC_FPGA_DeltaSigma
+#define mclk_44_1k (22579200 * 4)
+#define mclk_48k (24576000 * 4)
+#else
+#define mclk_44_1k (22579200 * 1)
+#define mclk_48k (24576000 * 1)
+#endif
+
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();
 

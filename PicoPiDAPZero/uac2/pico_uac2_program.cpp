@@ -213,7 +213,25 @@ void audio_task_pico(int resolution, int sample_rate)
 #ifdef DAC_DacPlusPro
 
 #else
-            si5351_set_clock(32, sample_rate);
+#ifdef EXT_CLK
+            if (sample_rate % 48000 == 0)
+            {
+                si5351_set_clock(sample_rate, sample_rate * 32, -24586000);
+            }
+            else
+            {
+                si5351_set_clock(sample_rate, sample_rate * 32, -22579200);
+            }
+#else
+            if (sample_rate % 48000 == 0)
+            {
+                si5351_set_clock(-24576000, -sample_rate * 64, sample_rate);
+            }
+            else
+            {
+                si5351_set_clock(-22579200, -sample_rate * 64, sample_rate);
+            }
+#endif // EXT_CLK
 #endif
 
             i2s_start();

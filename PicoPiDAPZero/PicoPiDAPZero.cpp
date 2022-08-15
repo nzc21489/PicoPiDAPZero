@@ -373,7 +373,25 @@ void music_decoder_start()
 #ifdef DAC_DacPlusPro
             DacPlusPro_change_bit_freq(32, pico_tag1->sampling_rate);
 #else
-            si5351_set_clock(32, pico_tag1->sampling_rate);
+#ifdef EXT_CLK
+            if (pico_tag1->sampling_rate % 48000 == 0)
+            {
+                si5351_set_clock(pico_tag1->sampling_rate, -pico_tag1->sampling_rate * 64, -mclk_48k);
+            }
+            else
+            {
+                si5351_set_clock(pico_tag1->sampling_rate, -pico_tag1->sampling_rate * 64, -mclk_44_1k);
+            }
+#else
+            if (pico_tag1->sampling_rate % 48000 == 0)
+            {
+                si5351_set_clock(-mclk_48k, -pico_tag1->sampling_rate * 64, pico_tag1->sampling_rate);
+            }
+            else
+            {
+                si5351_set_clock(-mclk_44_1k, -pico_tag1->sampling_rate * 64, pico_tag1->sampling_rate);
+            }
+#endif // EXT_CLK
 #endif
 
             sleep_ms(50);
@@ -421,7 +439,25 @@ void music_decoder_start()
 #ifdef DAC_DacPlusPro
             DacPlusPro_change_bit_freq(32, pico_tag1->sampling_rate);
 #else
-            si5351_set_clock(32, pico_tag1->sampling_rate);
+#ifdef EXT_CLK
+            if (pico_tag1->sampling_rate % 48000 == 0)
+            {
+                si5351_set_clock(pico_tag1->sampling_rate, -pico_tag1->sampling_rate * 64, -mclk_48k);
+            }
+            else
+            {
+                si5351_set_clock(pico_tag1->sampling_rate, -pico_tag1->sampling_rate * 64, -mclk_44_1k);
+            }
+#else
+            if (pico_tag1->sampling_rate % 48000 == 0)
+            {
+                si5351_set_clock(-mclk_48k, -pico_tag1->sampling_rate * 64, pico_tag1->sampling_rate);
+            }
+            else
+            {
+                si5351_set_clock(-mclk_44_1k, -pico_tag1->sampling_rate * 64, pico_tag1->sampling_rate);
+            }
+#endif // EXT_CLK
 #endif
 
             sleep_ms(50);
@@ -671,7 +707,11 @@ int main()
     DacPlusPro_setup();
     DacPlusPro_change_bit_freq(32, 44100);
 #else
-    si5351_set_clock(32, 44100);
+#ifdef EXT_CLK
+    si5351_set_clock(44100, -44100 * 64, -mclk_44_1k);
+#else
+    si5351_set_clock(-mclk_44_1k, -44100 * 64, 44100);
+#endif // EXT_CLK
 #endif
 
 #ifdef DAC_AK449X
