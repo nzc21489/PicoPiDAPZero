@@ -24,6 +24,11 @@
  */
 
 #include "PicoPiDAPZero.h"
+#include "pico/multicore.h"
+#include "hardware/adc.h"
+#include "hardware/pwm.h"
+#include "pico/bootrom.h"
+#include "i2c_devices.h"
 
 FATFS FatFs;
 FIL Fil;
@@ -32,6 +37,8 @@ vector<string> files;
 vector<string> dirs;
 
 uint32_t *stack_core1;
+
+dac *dac1 = NULL;
 
 getDirectoryList *get_directory_list;
 
@@ -127,14 +134,20 @@ volatile bool keypad = false;
 
 volatile bool display_on = true;
 
-string information_string[7] = {
+string information_string[12] = {
     "",
     "        Pico Pi DAP Zero",
-    dac_picopidap_zero,
+    "",
     "",
     version_picopidap_zero,
     "",
-    ""};
+    "",
+    "",    
+    "",
+    "",
+    "",
+    ""
+};
 
 uint32_t system_bat_time = 0;
 
@@ -179,7 +192,7 @@ TFT_eSprite spr_status_bar[2] = {TFT_eSprite(&tft), TFT_eSprite(&tft)}; // 0:lef
 #define status_bar_right_length 93                                      //15 * 2 + 9 * (3 + 4)
 #define status_bar_left_length (TFT_WIDTH - status_bar_right_length)
 TFT_eSprite *spr_home[5];
-TFT_eSprite *spr_information[7];
+TFT_eSprite *spr_information[12];
 vector<TFT_eSprite> sprite_explorer;
 
 bmp_shinonome16 *font_bmp;
@@ -221,7 +234,7 @@ volatile int jpeg_file_size_pre = 0;
 
 volatile bool usb_dac_mode = false;
 
-int digital_filter = -1;
+int digital_filter = 0;
 
 int playing_mode = playing_mode_normal;
 volatile bool repeat_next = false;
@@ -254,49 +267,6 @@ void core1();
 
 void explorer_tft(vector<TFT_eSprite> *sprite_explorer_tft, uint16_t start, uint16_t num);
 void information_tft();
-
-#if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
-void change_volume(uint8_t vol)
-{
-    change_volume_cs4398(vol);
-}
-#endif
-
-#if defined(DAC_DacPlusPro) && defined(NO_SOFT_VOL)
-void change_volume(uint8_t vol)
-{
-    change_volume_DacPlusPro(vol);
-}
-#endif
-
-#if defined(DAC_PCM1795)
-void change_volume(uint8_t vol)
-{
-    change_volume_pcm1795(vol);
-}
-#endif
-
-#if defined(DAC_AK449X)
-void change_volume(uint8_t vol)
-{
-    change_volume_ak449x(vol);
-}
-#endif
-
-void change_digital_filter()
-{
-#if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
-    cs4398_change_digital_filter(digital_filter_nums[digital_filter]);
-#elif defined(DAC_DacPlusPro)
-    DacPlusPro_change_digital_filter(digital_filter_nums[digital_filter]);
-#elif defined(DAC_PCM1795)
-    pcm1795_change_digital_filter(digital_filter_nums[digital_filter]);
-#elif defined(DAC_AK449X)
-    ak449x_change_digital_filter(digital_filter_nums[digital_filter]);
-#else
-
-#endif
-}
 
 void get_v_bat()
 {
@@ -942,33 +912,39 @@ void home_select()
         system_first_time = true;
         reboot_count = 0x7fffffff;
         get_v_bat_2();
-        information_string[4] = version_picopidap_zero;
+
+        for (int i = 0; i < sizeof(dac_data_string) / sizeof(dac_data_string[0]); i++)
+        {
+            information_string[i] = dac_data_string[i];
+        }
+
         information_string[6] = "         Bat = " + v_bat_string;
         information_tft();
         system_bat_time = to_ms_since_boot(get_absolute_time());
     }
     else if (player_mode == usb_dac)
     {
-#ifdef pmp_digital_filter
-        digital_filter_read = true;
-        while(digital_filter_read)
+        if (dac1->get_digital_filter_num() > 0)
         {
+            digital_filter_read = true;
+            while(digital_filter_read)
+            {
+            }
+            if (digital_filter < 0)
+            {
+                digital_filter = 0;
+            }
+            dac1->set_digital_filter(digital_filter);
         }
-        if (digital_filter < 0)
-        {
-            digital_filter = 0;
-        }
-        change_digital_filter();
-#endif
 
         usb_dac_mode = true;
+        information_string[2] = dac_data_string[2];
         information_string[3] = "             USB-DAC";
-        information_string[4] = "";
-        information_string[5] = "";
-        information_string[6] = "";
+
         system_bat_time = to_ms_since_boot(get_absolute_time());
         get_v_bat();
         volume = 100;
+        playing_mode = playing_mode_normal;
         status_bar_right_update();
         status_bar_left_update(false);
         tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
@@ -976,20 +952,19 @@ void home_select()
     }
     else if (player_mode == dac) // system
     {
-#ifdef pmp_digital_filter
-        digital_filter_read = true;
-        while(digital_filter_read)
+        if (dac1->get_digital_filter_num() > 0)
         {
+            digital_filter_read = true;
+            while(digital_filter_read)
+            {
+            }
+            if (digital_filter < 0)
+            {
+                digital_filter = 0;
+            }
         }
-        if (digital_filter < 0)
-        {
-            digital_filter = 0;
-        }
-        information_string[6] = digital_filter_strs[digital_filter];
-#else
-        information_string[6] = " No digital filter available";
-#endif
-        information_string[4] = "";
+
+        information_string[6] = dac1->get_digital_filter_strs(digital_filter);
         dac_display_first_time = true;
         information_tft();
     }
@@ -1666,33 +1641,34 @@ void core1()
 
     if (digital_filter >= 0)
     {
-        change_digital_filter();
+        dac1->set_digital_filter(digital_filter);
     }
 
     if ((!gpio_get(buttons_pin[usb_dac_button1])) || (!gpio_get(buttons_pin[usb_dac_button2])))
     {
-#ifdef pmp_digital_filter
-        digital_filter_read = true;
-        while(digital_filter_read)
+        if (dac1->get_digital_filter_num() > 0)
         {
+            digital_filter_read = true;
+            while(digital_filter_read)
+            {
+            }
+            if (digital_filter < 0)
+            {
+                digital_filter = 0;
+            }
+            dac1->set_digital_filter(digital_filter);
         }
-        if (digital_filter < 0)
-        {
-            digital_filter = 0;
-        }
-        change_digital_filter();
-#endif
 
         home_screen_mode = false;
         player_mode = usb_dac;
         usb_dac_mode = true;
+        information_string[2] = dac_data_string[2];
         information_string[3] = "             USB-DAC";
         information_string[4] = "";
-        information_string[5] = "";
-        information_string[6] = "";
         system_bat_time = to_ms_since_boot(get_absolute_time());
         get_v_bat();
         volume = 100;
+        playing_mode = playing_mode_normal;
         status_bar_right_update();
         status_bar_left_update(false);
         tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
@@ -1852,9 +1828,6 @@ void core1()
                         {
                             volume = 100;
                         }
-#ifdef NO_SOFT_VOL
-                        change_volume(volume);
-#endif
                         volume_write = 1;
                         status_bar_right_update();
                     }
@@ -1869,9 +1842,6 @@ void core1()
                                 {
                                     volume = 100;
                                 }
-#ifdef NO_SOFT_VOL
-                                change_volume(volume);
-#endif
                                 volume_write = 1;
                                 status_bar_right_update();
                                 time_hold_multi += time_long_interval;
@@ -2212,9 +2182,6 @@ void core1()
                         if (volume != 0)
                         {
                             volume--;
-#ifdef NO_SOFT_VOL
-                            change_volume(volume);
-#endif
                             volume_write = 1;
                             status_bar_right_update();
                         }
@@ -2228,9 +2195,6 @@ void core1()
                                 if (volume != 0)
                                 {
                                     volume--;
-#ifdef NO_SOFT_VOL
-                                    change_volume(volume);
-#endif
                                     volume_write = 1;
                                     status_bar_right_update();
                                 }
@@ -2377,6 +2341,10 @@ void core1()
                 else
                 {
                     home_screen_mode = true;
+                    for (int i = 4; i < sizeof(information_string) / sizeof(information_string[0]); i++)
+                    {
+                        information_string[i] = "";
+                    }
                     tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
                     home_tft();
                 }
@@ -2529,32 +2497,33 @@ void core1()
                     key_long = true;
                 }
             }
-#ifdef pmp_digital_filter
+
             if ((key_num == 6) && (key_count == 0)) // next dac digital filter select
             {
-                digital_filter++;
-                digital_filter %= digital_filter_num;
-                information_string[6] = digital_filter_strs[digital_filter];
-                information_tft();
+                if (dac1->get_digital_filter_num() > 0)
+                {
+                    digital_filter++;
+                    digital_filter %= dac1->get_digital_filter_num();
+                    information_string[6] = dac1->get_digital_filter_strs(digital_filter);
+                    information_tft();
+                }
             }
             else if ((key_num == 4) && (key_count == 0)) // prev dac digital filter select
             {
-                digital_filter--;
-                if (digital_filter < 0)
+                if (dac1->get_digital_filter_num() > 0)
                 {
-                    digital_filter = digital_filter_num - 1;
+                    digital_filter--;
+                    if (digital_filter < 0)
+                    {
+                        digital_filter = dac1->get_digital_filter_num() - 1;
+                    }
+                    information_string[6] = dac1->get_digital_filter_strs(digital_filter);
+                    information_tft();
                 }
-                information_string[6] = digital_filter_strs[digital_filter];
-                information_tft();
             }
             else if (key_num == 11)
             {
             }
-#else
-            if (key_num == 11)
-            {
-            }
-#endif
             else if (key_num == 100)
             {
             }
@@ -2565,8 +2534,9 @@ void core1()
                 {
                     sleep_ms(1);
                 }
-                change_digital_filter();
+                dac1->set_digital_filter(digital_filter);
                 home_screen_mode = true;
+                information_string[6] = "";
                 tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
                 home_tft();
             }

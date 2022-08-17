@@ -30,17 +30,7 @@
 #include <cstdio>
 #include "pico_i2s.h"
 #include "si5351.h"
-#if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
-#include "cs4398.h"
-#endif
-
-#ifdef DAC_DacPlusPro
-#include "DacPlusPro.h"
-#endif
-
-#ifdef DAC_AK449X
-#include "ak449x.h"
-#endif
+#include "PicoPiDAPZero.h"
 
 volatile uint8_t spk_buf_cnt = 0;
 volatile bool uac_runnnig = false;
@@ -54,21 +44,7 @@ volatile int freq_uac2 = 0;
 
 void pico_uac2_init()
 {
-#if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
-    change_volume_cs4398(100);
-#endif
-
-#ifdef DAC_DacPlusPro
-    change_volume_DacPlusPro(100);
-#endif
-
-#ifdef DAC_PC1795
-    change_volume_pcm1795(100);
-#endif
-
-#ifdef DAC_AK449X
-    change_volume_ak449x(100);
-#endif
+    dac1->set_volume(100);
 }
 
 void stop_i2s()
@@ -202,37 +178,45 @@ void audio_task_pico(int resolution, int sample_rate)
     {
         if (i2s_buff_count > i2s_buf_size_uac2 / 2)
         {
-#if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
-            cs4398_set_FM(sample_rate);
-#endif
-
-#ifdef DAC_DacPlusPro
-            DacPlusPro_change_bit_freq(32, sample_rate);
-#endif
-
-#ifdef DAC_DacPlusPro
-
-#else
-#ifdef EXT_CLK
-            if (sample_rate % 48000 == 0)
+            if (dac1->get_dac() == dac_pcm512x)
             {
-                si5351_set_clock(sample_rate, sample_rate * 32, -24586000);
+                si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
             }
             else
             {
-                si5351_set_clock(sample_rate, sample_rate * 32, -22579200);
+                if (external_si5351)
+                {
+                    if (sample_rate == 0)
+                    {
+                        si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
+                    }
+                    else if (sample_rate % 48000 == 0)
+                    {
+                        si5351_set_clock(si5351_i2c_port, 0x60, sample_rate, -sample_rate * 64, -mclk_48k);
+                    }
+                    else
+                    {
+                        si5351_set_clock(si5351_i2c_port, 0x60, sample_rate, -sample_rate * 64, -mclk_44_1k);
+                    }
+                }
+                else
+                {
+                    if (sample_rate == 0)
+                    {
+                        si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
+                    }
+                    else 
+                    if (sample_rate % 48000 == 0)
+                    {
+                        si5351_set_clock(si5351_i2c_port, 0x60, -mclk_48k, -sample_rate * 64, sample_rate);
+                    }
+                    else
+                    {
+                        si5351_set_clock(si5351_i2c_port, 0x60, -mclk_44_1k, -sample_rate * 64, sample_rate);
+                    }
+                }
             }
-#else
-            if (sample_rate % 48000 == 0)
-            {
-                si5351_set_clock(-24576000, -sample_rate * 64, sample_rate);
-            }
-            else
-            {
-                si5351_set_clock(-22579200, -sample_rate * 64, sample_rate);
-            }
-#endif // EXT_CLK
-#endif
+            dac1->set_bit_freq(32, sample_rate);
 
             i2s_start();
             uac_runnnig = true;

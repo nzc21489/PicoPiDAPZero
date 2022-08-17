@@ -30,11 +30,9 @@
 #include "stdint.h"
 #include "hardware/i2c.h"
 
-#define i2c_port i2c1
-#define sda_pin 2
-#define scl_pin 3
+extern i2c_inst_t si5351_i2c_port;
+extern bool external_si5351;
 
-void setup_si5351_i2c();
-bool si5351_set_clock(int clock0, int clock1, int clock2);
+bool si5351_set_clock(i2c_inst_t i2c_port, uint8_t i2c_address, int clock0, int clock1, int clock2);
 
 #endif // SI5351_H

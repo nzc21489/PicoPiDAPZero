@@ -18,6 +18,8 @@
 #pragma GCC optimize("O2")
 
 #include "PicoPiDAPZero.h"
+#include "pico/multicore.h"
+#include "hardware/pwm.h"
 
 #include "AudioFileSourceSD.h"
 #include "AudioGeneratorFLAC.h"
@@ -31,6 +33,10 @@
 #include "hardware/clocks.h"
 #include "hardware/structs/pll.h"
 #include "hardware/structs/clocks.h"
+
+#include "i2c_devices.h"
+
+#include <math.h>
 
 volatile file_type audio_type_pre = file_start;
 
@@ -46,31 +52,85 @@ volatile bool wav_playing = true;
 
 volatile uint8_t volume_pre = 0;
 
-#ifndef NO_SOFT_VOL
-#include <math.h>
 void change_volume(uint8_t vol)
 {
-    if (out)
+#ifndef SOFT_VOL
+    if (dac1->set_volume(vol))
     {
+        if (out)
+        {
+            out->SetGain(1.0);
+        }
+        wav_set_gain(1.0);        
+    }
+    else
+#endif
+    {
+        if (out)
+        {
+            if (vol == 0)
+            {
+                out->SetGain(0.f);
+            }
+            else
+            {
+                out->SetGain(powf(10.0, (((float)vol - 100.f) / 20.f)));
+            }
+        }
         if (vol == 0)
         {
-            out->SetGain(0.f);
+            wav_set_gain(0.f);
         }
         else
         {
-            out->SetGain(powf(10.0, (((float)vol - 100.f) / 20.f)));
+            wav_set_gain((powf(10.0, (((float)vol - 100.f) / 20.f))));
         }
     }
-    if (vol == 0)
+}
+
+void set_si5351(uint32_t sample_rate)
+{
+    if (dac1 != NULL)
     {
-        wav_set_gain(0.f);
+        if (dac1->get_dac() == dac_pcm512x)
+        {
+            si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
+            return;
+        }
+    }
+
+    if (external_si5351)
+    {
+        if (sample_rate == 0)
+        {
+            si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
+        }
+        else if (sample_rate % 48000 == 0)
+        {
+            si5351_set_clock(si5351_i2c_port, 0x60, sample_rate, -sample_rate * 64, -mclk_48k);
+        }
+        else
+        {
+            si5351_set_clock(si5351_i2c_port, 0x60, sample_rate, -sample_rate * 64, -mclk_44_1k);
+        }
     }
     else
     {
-        wav_set_gain((powf(10.0, (((float)vol - 100.f) / 20.f))));
+        if (sample_rate == 0)
+        {
+            si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
+        }
+        else 
+        if (sample_rate % 48000 == 0)
+        {
+            si5351_set_clock(si5351_i2c_port, 0x60, -mclk_48k, -sample_rate * 64, sample_rate);
+        }
+        else
+        {
+            si5351_set_clock(si5351_i2c_port, 0x60, -mclk_44_1k, -sample_rate * 64, sample_rate);
+        }
     }
 }
-#endif
 
 bool init_sd()
 {
@@ -120,20 +180,21 @@ bool init_sd()
             f_close(&fil);
         }
 
-#ifdef pmp_digital_filter
-        fr = f_open(&fil, (pmp_path + "/" + pmp_digital_filter).c_str(), FA_READ | FA_OPEN_EXISTING);
-        if (fr == FR_OK)
+        if (dac1->get_digital_filter_num() > 0)
         {
-            char line[100];
-            f_gets(line, sizeof(line), &fil);
-            string d_f = line;
-            if (d_f.size() > 0)
+            fr = f_open(&fil, (pmp_path + "/" + dac1->get_digital_filter_text_name()).c_str(), FA_READ | FA_OPEN_EXISTING);
+            if (fr == FR_OK)
             {
-                digital_filter = stoi(d_f);
+                char line[100];
+                f_gets(line, sizeof(line), &fil);
+                string d_f = line;
+                if (d_f.size() > 0)
+                {
+                    digital_filter = stoi(d_f);
+                }
+                f_close(&fil);
             }
-            f_close(&fil);
         }
-#endif
 
         fr = f_open(&fil, (pmp_path + "/" + pmp_playing_mode).c_str(), FA_READ | FA_OPEN_EXISTING);
         if (fr == FR_OK)
@@ -366,33 +427,8 @@ void music_decoder_start()
                 out = NULL;
             }
 
-#if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
-            cs4398_set_FM(pico_tag1->sampling_rate);
-#endif
-
-#ifdef DAC_DacPlusPro
-            DacPlusPro_change_bit_freq(32, pico_tag1->sampling_rate);
-#else
-#ifdef EXT_CLK
-            if (pico_tag1->sampling_rate % 48000 == 0)
-            {
-                si5351_set_clock(pico_tag1->sampling_rate, -pico_tag1->sampling_rate * 64, -mclk_48k);
-            }
-            else
-            {
-                si5351_set_clock(pico_tag1->sampling_rate, -pico_tag1->sampling_rate * 64, -mclk_44_1k);
-            }
-#else
-            if (pico_tag1->sampling_rate % 48000 == 0)
-            {
-                si5351_set_clock(-mclk_48k, -pico_tag1->sampling_rate * 64, pico_tag1->sampling_rate);
-            }
-            else
-            {
-                si5351_set_clock(-mclk_44_1k, -pico_tag1->sampling_rate * 64, pico_tag1->sampling_rate);
-            }
-#endif // EXT_CLK
-#endif
+            dac1->set_bit_freq(32, pico_tag1->sampling_rate);
+            set_si5351(pico_tag1->sampling_rate);
 
             sleep_ms(50);
             out = new AudioOutputI2S(buffer_count);
@@ -432,33 +468,8 @@ void music_decoder_start()
                 out = NULL;
             }
 
-#if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
-            cs4398_set_FM(pico_tag1->sampling_rate);
-#endif
-
-#ifdef DAC_DacPlusPro
-            DacPlusPro_change_bit_freq(32, pico_tag1->sampling_rate);
-#else
-#ifdef EXT_CLK
-            if (pico_tag1->sampling_rate % 48000 == 0)
-            {
-                si5351_set_clock(pico_tag1->sampling_rate, -pico_tag1->sampling_rate * 64, -mclk_48k);
-            }
-            else
-            {
-                si5351_set_clock(pico_tag1->sampling_rate, -pico_tag1->sampling_rate * 64, -mclk_44_1k);
-            }
-#else
-            if (pico_tag1->sampling_rate % 48000 == 0)
-            {
-                si5351_set_clock(-mclk_48k, -pico_tag1->sampling_rate * 64, pico_tag1->sampling_rate);
-            }
-            else
-            {
-                si5351_set_clock(-mclk_44_1k, -pico_tag1->sampling_rate * 64, pico_tag1->sampling_rate);
-            }
-#endif // EXT_CLK
-#endif
+            dac1->set_bit_freq(32, pico_tag1->sampling_rate);
+            set_si5351(pico_tag1->sampling_rate);
 
             sleep_ms(50);
 
@@ -485,10 +496,8 @@ void music_decoder_start()
     play_start = to_ms_since_boot(get_absolute_time());
     music_playing = true;
 
-#ifndef NO_SOFT_VOL
     change_volume(0);
     volume_pre = 0;
-#endif
 }
 
 void seek_audio()
@@ -545,8 +554,9 @@ void seek_audio()
 
 void read_digital_filter()
 {
-#ifdef pmp_digital_filter
-        fr = f_open(&fil, (pmp_path + "/" + pmp_digital_filter).c_str(), FA_READ | FA_OPEN_EXISTING);
+    if (dac1->get_digital_filter_num() > 0)
+    {
+        fr = f_open(&fil, (pmp_path + "/" + dac1->get_digital_filter_text_name()).c_str(), FA_READ | FA_OPEN_EXISTING);
         if (fr == FR_OK)
         {
             char line[100];
@@ -558,21 +568,22 @@ void read_digital_filter()
             }
             f_close(&fil);
         }
-#endif
+    }
 }
 
 void write_digital_filter()
 {
-#ifdef pmp_digital_filter
-    fr = f_open(&fil, (pmp_path + "/" + pmp_digital_filter).c_str(), FA_WRITE | FA_CREATE_ALWAYS);
-    if (fr == FR_OK)
+    if (dac1->get_digital_filter_num() > 0)
     {
-        char buff;
-        UINT bw;
-        f_write(&fil, (to_string(digital_filter)).c_str(), strlen((to_string(digital_filter)).c_str()), &bw);
-        f_close(&fil);
+        fr = f_open(&fil, (pmp_path + "/" + dac1->get_digital_filter_text_name()).c_str(), FA_WRITE | FA_CREATE_ALWAYS);
+        if (fr == FR_OK)
+        {
+            char buff;
+            UINT bw;
+            f_write(&fil, (to_string(digital_filter)).c_str(), strlen((to_string(digital_filter)).c_str()), &bw);
+            f_close(&fil);
+        }
     }
-#endif
 }
 
 void next_music_repeat_all()
@@ -697,30 +708,65 @@ void next_music_repeat_all()
 
 int main()
 {
-    setup_si5351_i2c();
+    i2c_inst_t i2c_port1 = get_i2c_port(sda_pin, scl_pin);
+    setup_i2c(sda_pin, scl_pin, i2c_port1);
+    uint8_t i2c_dac_clk[3]; // [0] : 0 -> no clock, 1 -> Si5351A, [1] : DAC, [2] : DAC Address
 
-#if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
-    cs4398_setup();
-#endif
+    si5351_i2c_port = i2c_port1;
 
-#ifdef DAC_DacPlusPro
-    DacPlusPro_setup();
-    DacPlusPro_change_bit_freq(32, 44100);
-#else
 #ifdef EXT_CLK
-    si5351_set_clock(44100, -44100 * 64, -mclk_44_1k);
+    external_si5351 = true;
+    get_i2c_devices(i2c_port1, i2c_dac_clk, false);
 #else
-    si5351_set_clock(-mclk_44_1k, -44100 * 64, 44100);
-#endif // EXT_CLK
+    get_i2c_devices(i2c_port1, i2c_dac_clk, true);
 #endif
 
-#ifdef DAC_AK449X
-    ak449x_setup();
+    if (i2c_dac_clk[1] == dac_cs4398)
+    {
+        dac1 = new cs4398();
+        dac1->set_dac_address(i2c_dac_clk[2]);
+        dac1->set_i2c_port(i2c_port1);
+        dac1->setup();
+        set_si5351(44100);
+    }
+    else if ((i2c_dac_clk[1] == dac_DacPlusPro) || (i2c_dac_clk[1] == dac_pcm512x))
+    {
+        dac1 = new pcm512x();
+        dac1->set_dac_address(i2c_dac_clk[2]);
+        dac1->set_i2c_port(i2c_port1);
+        set_si5351(0);
+        dac1->setup();
+    }
+    else
+    {
+        set_si5351(44100);
+        sleep_ms(100);
+#ifdef EXT_CLK
+        get_i2c_devices(i2c_port1, i2c_dac_clk, false);
+#else
+        get_i2c_devices(i2c_port1, i2c_dac_clk, true);
 #endif
 
-#ifdef DAC_PCM1795
-    pcm1795_setup();
+        if (i2c_dac_clk[1] == dac_pcm1795)
+        {
+            dac1 = new pcm1795();
+        }
+        else if (i2c_dac_clk[1] == dac_ak449x)
+        {
+            dac1 = new ak449x();
+        }
+        else
+        {
+            dac1 = new general_i2s();
+#ifdef DAC_FPGA_DeltaSigma
+            dac_data_string[2] = "         FPGA DeltaSigma";
 #endif
+        }
+
+        dac1->set_dac_address(i2c_dac_clk[2]);
+        dac1->set_i2c_port(i2c_port1);
+        dac1->setup();
+    }
 
     set_sys_clock_pll(1596 * MHZ, 6, 2); // 133MHz
 
@@ -1083,13 +1129,11 @@ int main()
             digital_filter_write = false;
         }
 
-#ifndef NO_SOFT_VOL
         if (volume != volume_pre)
         {
             change_volume(volume);
             volume_pre = volume;
         }
-#endif
 
         music_playing_pre = music_playing;
     }

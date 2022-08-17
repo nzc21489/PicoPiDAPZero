@@ -24,40 +24,24 @@
  */
 
 #include "cs4398.h"
+#include "pico_i2c.h"
 
-#include "hardware/i2c.h"
-
-#define i2c_port_cs4398 i2c1
-
-uint8_t cs4398_register_value[10] = {
-    0b00000000, // dummy
-    0b01110000, // 1
-    0b00010000, // 2
-    0b00001001, // 3
-    0b01000000, // 4
-    0b00000000, // 5
-    0b00000000, // 6
-    0b10110000, // 7
-    0b11000000, // 8
-    0b00001000, // 9
-};
-
-int send_i2c(uint8_t reg, uint8_t value)
+cs4398::cs4398()
 {
-    uint8_t reg_data[2];
-    reg_data[0] = reg;
-    reg_data[1] = value;
-    int bw = i2c_write_blocking(i2c_port_cs4398, cs4398address, &reg_data[0], 2, false);
-    return bw;
+    
 }
 
-int send_i2c_multi(uint8_t *value, int num)
+void cs4398::set_dac_address(uint8_t address)
 {
-    int bw = i2c_write_blocking(i2c_port_cs4398, cs4398address, value, num, false);
-    return bw;
+    dac_address = address;
 }
 
-void cs4398_setup()
+void cs4398::set_i2c_port(i2c_inst_t i2c_port)
+{
+    dac_i2c_port = i2c_port;
+}
+
+void cs4398::setup()
 {
     int timeout = 1000;
     int count = 0;
@@ -65,7 +49,7 @@ void cs4398_setup()
 
     do
     {
-        bw = send_i2c(8, cs4398_register_value[8]);
+        bw = write_i2c(dac_i2c_port, dac_address, 8, register_value[8]);
         count++;
         if (count > timeout)
         {
@@ -79,11 +63,11 @@ void cs4398_setup()
     reg_datas[0] = 2 | 0b10000000;
     for (int i = 1; i < 9; i++)
     {
-        reg_datas[i] = cs4398_register_value[i + 1];
+        reg_datas[i] = register_value[i + 1];
     }
     do
     {
-        bw = send_i2c_multi(reg_datas, 9);
+        bw = write_i2c_multi(dac_i2c_port, dac_address, reg_datas, 9);
         count++;
         if (count > timeout)
         {
@@ -92,29 +76,29 @@ void cs4398_setup()
     } while (bw != 9);
 
     // clear PDN bit
-    cs4398_register_value[8] &= 0b01111111;
-    send_i2c(8, cs4398_register_value[8]);
+    register_value[8] &= 0b01111111;
+    write_i2c(dac_i2c_port, dac_address, 8, register_value[8]);
 }
 
-void cs4398_mute()
+void cs4398::mute()
 {
-    cs4398_register_value[4] |= 0b00010000;
+    register_value[4] |= 0b00010000;
 
-    int bw = send_i2c(4, cs4398_register_value[4]);
+    int bw = write_i2c(dac_i2c_port, dac_address, 4, register_value[4]);
 
     // clear PDN bit
-    cs4398_register_value[8] &= 0b01111111;
+    register_value[8] &= 0b01111111;
 
-    send_i2c(8, cs4398_register_value[8]);
+    write_i2c(dac_i2c_port, dac_address, 8, register_value[8]);
 }
 
-void cs4398_unmute()
+void cs4398::unmute()
 {
-    cs4398_register_value[4] &= 0b11101111;
-    int bw = send_i2c(4, cs4398_register_value[4]);
+    register_value[4] &= 0b11101111;
+    int bw = write_i2c(dac_i2c_port, dac_address, 4, register_value[4]);
 }
 
-void cs4398_set_FM(int sampling_rate)
+void cs4398::set_FM(int sampling_rate)
 {
     uint8_t audio_sample = 0;
 
@@ -170,29 +154,55 @@ void cs4398_set_FM(int sampling_rate)
         }
     }
 
-    cs4398_register_value[2] &= 0b11111100;
-    cs4398_register_value[2] |= audio_sample;
+    register_value[2] &= 0b11111100;
+    register_value[2] |= audio_sample;
 
-    int bw = send_i2c(2, cs4398_register_value[2]);
+    int bw = write_i2c(dac_i2c_port, dac_address, 2, register_value[2]);
 }
 
-void change_volume_cs4398(uint8_t vol)
+void cs4398::set_bit_freq(uint8_t bit, uint32_t freq)
+{
+    set_FM(freq);
+}
+
+bool cs4398::set_volume(uint8_t vol)
 {
     uint8_t vol_value_send = (vol_max - vol_min) * vol / 100;
     if (vol == 0)
     {
         vol_value_send = vol_min;
     }
-    send_i2c(5, vol_value_send);
-    send_i2c(6, vol_value_send);
+    write_i2c(dac_i2c_port, dac_address, 5, vol_value_send);
+    write_i2c(dac_i2c_port, dac_address, 6, vol_value_send);
+    return true;
 }
 
-void cs4398_change_digital_filter(int digital_filter)
+uint8_t cs4398::get_digital_filter_num()
 {
-    if ((digital_filter == 0) || (digital_filter == 1))
+    return digital_filter_num;
+}
+
+string cs4398::get_digital_filter_strs(uint8_t filter_num)
+{
+    return digital_filter_strs[filter_num];
+}
+
+void cs4398::set_digital_filter(int filter_num)
+{
+    if (filter_num < digital_filter_num)
     {
-        cs4398_register_value[7] &= 0b11111011;
-        cs4398_register_value[7] |= (digital_filter << 2);
-        send_i2c(7, cs4398_register_value[7]);
+        register_value[7] &= 0b11111011;
+        register_value[7] |= (digital_filter_nums[filter_num] << 2);
+        write_i2c(dac_i2c_port, dac_address, 7, register_value[7]);
     }
+}
+
+string cs4398::get_digital_filter_text_name()
+{
+    return digital_filter_text;
+}
+
+dac_type cs4398::get_dac()
+{
+    return dac_cs4398;
 }

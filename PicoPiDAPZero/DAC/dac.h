@@ -23,41 +23,36 @@
  *
  */
 
-#ifndef CS4398
-#define CS4398
-
-#include "stdint.h"
+#pragma once
 #include <string>
-
+#include <string.h>
+#include <cstring>
 using namespace std;
 
-#ifdef DAC_CS4398
-#define cs4398address 0b1001100
-#define pmp_digital_filter "digital_filter_CS4398.txt"
-#else
-#define cs4398address 0b1001101
-#define pmp_digital_filter "digital_filter_Zero_HAT_DAC_CS4398.txt"
-#endif
-
-#define vol_max 0b00000000
-#define vol_min 0b11111111
-
-#define digital_filter_num 2
-static const uint8_t digital_filter_nums[2] = {
-    0,
-    1
+enum dac_type
+{
+    dac_general_i2s = 0,
+    dac_cs4398,
+    dac_DacPlusPro,
+    dac_pcm512x,
+    dac_pcm1795,
+    dac_ak449x,
 };
 
-static const string digital_filter_strs[2] = {
-    "         fast roll off",
-    "         slow roll off"
+class dac
+{
+public:
+    virtual void set_dac_address(uint8_t address);
+    virtual void set_i2c_port(i2c_inst_t i2c_port);
+    virtual void setup();
+    virtual void mute();
+    virtual void unmute();
+    virtual void set_bit_freq(uint8_t bit, uint32_t freq);
+    virtual bool set_volume(uint8_t vol);
+    virtual uint8_t get_digital_filter_num();
+    virtual string get_digital_filter_strs(uint8_t filter_num);
+    virtual void set_digital_filter(int digital_filter);
+    virtual string get_digital_filter_text_name();
+    virtual dac_type get_dac();
+    virtual ~dac() = default;
 };
-
-extern void cs4398_setup();
-extern void cs4398_mute();
-extern void cs4398_unmute();
-extern void cs4398_set_FM(int sampling_rate);
-extern void change_volume_cs4398(uint8_t vol);
-extern void cs4398_change_digital_filter(int digital_filter);
-
-#endif //CS4398

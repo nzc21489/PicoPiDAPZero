@@ -31,14 +31,6 @@
 #include <string.h>
 #include "pico/stdlib.h"
 
-#include "pico/multicore.h"
-
-#include "hardware/adc.h"
-
-#include "hardware/pwm.h"
-
-#include "pico/bootrom.h"
-
 #include <vector>
 
 #include <array>
@@ -80,21 +72,14 @@
 #include "uac2_main.h"
 #include "pico_uac2_program.h"
 
-#if defined(DAC_CS4398) || defined(DAC_Zero_HAT_DAC_CS4398)
+#include "pico_i2c.h"
+
+#include "general_i2s.h"
 #include "cs4398.h"
-#endif
-
-#ifdef DAC_PCM1795
+#include "pcm512x.h"
 #include "pcm1795.h"
-#endif
-
-#ifdef DAC_AK449X
 #include "ak449x.h"
-#endif
-
-#ifdef DAC_DacPlusPro
-#include "DacPlusPro.h"
-#endif
+#include "dac.h"
 
 #include "version_picopidap_zero.h"
 
@@ -206,12 +191,26 @@ enum playing_mode_type
 extern volatile bool repeat_next;
 extern string jpeg_file_name;
 
+extern dac *dac1;
+
 #ifdef DAC_FPGA_DeltaSigma
 #define mclk_44_1k (22579200 * 4)
 #define mclk_48k (24576000 * 4)
 #else
 #define mclk_44_1k (22579200 * 1)
 #define mclk_48k (24576000 * 1)
+#endif
+
+#ifdef i2c_sda_pin
+#define sda_pin i2c_sda_pin
+#else
+#define sda_pin 2
+#endif
+
+#ifdef i2c_scl_pin
+#define scl_pin i2c_scl_pin
+#else
+#define scl_pin 3
 #endif
 
 void status_bar_left_update(uint8_t play_mode);

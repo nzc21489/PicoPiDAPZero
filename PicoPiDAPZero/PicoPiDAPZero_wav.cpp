@@ -41,19 +41,24 @@ uint32_t wav_end_byte = 0;
 int16_t *wav_buff;
 int32_t vol_db;
 
-#ifndef NO_SOFT_VOL
 static const int vol_div  = 1 << 16;
-void soft_gain(int buffsel)
+void set_buffer(int buffsel)
 {
-    for (int i = 0; i < i2s_buff_size; i += 2)
+    if (gain_wav < 0.99)
     {
-        int32_t *buff_i2s_32 = (int32_t *)&i2s_buff[buffsel][i];
-        int32_t *buff_wav_32 = (int32_t *)&wav_buff[i];
-        // buff_i2s_32[0] = buff_wav_32[0] * gain_wav;
-        buff_i2s_32[0] = (int32_t)(((int64_t)buff_wav_32[0] * (int64_t)vol_db) / (int64_t)vol_div);
+        for (int i = 0; i < i2s_buff_size; i += 2)
+        {
+            int32_t *buff_i2s_32 = (int32_t *)&i2s_buff[buffsel][i];
+            int32_t *buff_wav_32 = (int32_t *)&wav_buff[i];
+            // buff_i2s_32[0] = buff_wav_32[0] * gain_wav;
+            buff_i2s_32[0] = (int32_t)(((int64_t)buff_wav_32[0] * (int64_t)vol_db) / (int64_t)vol_div);
+        }
+    }
+    else
+    {
+        memcpy(&i2s_buff[buffsel][0], wav_buff, i2s_buff_size * 2);
     }
 }
-#endif
 
 void convert_24_to_32()
 {
@@ -131,10 +136,9 @@ bool wav_loop()
         memset(&i2s_buff[0][0], 0, i2s_buff_size * 2);
         memset(&i2s_buff[1][0], 0, i2s_buff_size * 2);
 
-#ifndef NO_SOFT_VOL
-        soft_gain(0);
-        soft_gain(1);
-#endif
+        set_buffer(0);
+        set_buffer(1);
+
         i2s_start();
     }
     else if (play_stop)
@@ -145,10 +149,8 @@ bool wav_loop()
         memset(&i2s_buff[0][0], 0, i2s_buff_size * 2);
         memset(&i2s_buff[1][0], 0, i2s_buff_size * 2);
 
-#ifndef NO_SOFT_VOL
-        soft_gain(0);
-        soft_gain(1);
-#endif
+        set_buffer(0);
+        set_buffer(1);
     }
     if (int_count_i2s > (i2s_buff_count - 1))
     {
@@ -206,11 +208,7 @@ bool wav_loop()
             }
         }
 
-#ifndef NO_SOFT_VOL
-        soft_gain((int_count_i2s + 1) % 2);
-#else
-        memcpy(&i2s_buff[(int_count_i2s + 1) % 2][0], wav_buff, i2s_buff_size * 2);
-#endif
+        set_buffer((int_count_i2s + 1) % 2);
 
         if (byte_read != bytes_to_read)
         {

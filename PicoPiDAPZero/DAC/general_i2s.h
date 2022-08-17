@@ -23,42 +23,34 @@
  *
  */
 
-#ifndef AK449X
-#define AK449X
+#ifndef GENERAL_I2S
+#define GENERAL_I2S
 
 #include "stdint.h"
 #include <string>
+#include "hardware/i2c.h"
+#include "dac.h"
 
 using namespace std;
 
-#define ak449x_address 0x10
-#define vol_min 0b00000000
-#define vol_max 0b11111111
+class general_i2s : public dac
+{
+private:
 
-#define pmp_digital_filter "AK449X.txt"
-
-#define digital_filter_num 6
-
-static const uint8_t digital_filter_nums[6] = {
-    0,
-    1,
-    2,
-    3,
-    4,
-    5
+public:
+    void set_dac_address(uint8_t address);
+    void set_i2c_port(i2c_inst_t i2c_port);
+    void setup();
+    void mute();
+    void unmute();
+    void set_bit_freq(uint8_t bit, uint32_t freq);
+    bool set_volume(uint8_t vol);
+    uint8_t get_digital_filter_num();
+    string get_digital_filter_strs(uint8_t filter_num);
+    void set_digital_filter(int filter_num);
+    string get_digital_filter_text_name();
+    dac_type get_dac();
+    general_i2s();
 };
 
-static const string digital_filter_strs[6] = {
-    "         Sharp roll-off",
-    "         Slow roll-off",
-    "  hort delay sharp roll-off",
-    "  Short delay slow roll-off",
-    "     Super Slow roll-off",
-    "  Low dispersion Short delay",
-};
-
-extern void ak449x_setup();
-extern void change_volume_ak449x(uint8_t vol);
-extern void ak449x_change_digital_filter(int digital_filter);
-
-#endif //AK449X 
+#endif //GENERAL_I2S

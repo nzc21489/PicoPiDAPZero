@@ -1,4 +1,4 @@
- /*
+/* 
  * The MIT License (MIT)
  *
  * Copyright (c) 2022 nzc21489
@@ -23,12 +23,48 @@
  *
  */
 
-#ifndef VERSION_PICOPIDAP_ZERO_H
-#define VERSION_PICOPIDAP_ZERO_H
+#ifndef PCM1795
+#define PCM1795
 
+#include "stdint.h"
 #include <string>
+#include "hardware/i2c.h"
+#include "dac.h"
+
 using namespace std;
 
-static const string version_picopidap_zero = "         Version 0.2.4";
+class pcm1795 : public dac
+{
+private:
+    static const uint8_t vol_max = 0b11111111;
+    static const uint8_t vol_min = 0b00001110;
+    uint8_t dac_address = 0x4C;
+    i2c_inst_t dac_i2c_port = *i2c0;
+    const string digital_filter_text = "digital_filter_PCM1795.txt";
+    const uint8_t digital_filter_num = 2;
+    const uint8_t digital_filter_nums[2] = {
+        0,
+        1
+    };
+    const string digital_filter_strs[2] = {
+    "         Sharp roll-off",
+    "         Slow roll-off"
+    };
 
-#endif // VERSION_PICOPIDAP_ZERO_H
+public:
+    void set_dac_address(uint8_t address);
+    void set_i2c_port(i2c_inst_t i2c_port);
+    void setup();
+    void mute();
+    void unmute();
+    void set_bit_freq(uint8_t bit, uint32_t freq);
+    bool set_volume(uint8_t vol);
+    uint8_t get_digital_filter_num();
+    string get_digital_filter_strs(uint8_t filter_num);
+    void set_digital_filter(int filter_num);
+    string get_digital_filter_text_name();
+    dac_type get_dac();
+    pcm1795();
+};
+
+#endif //PCM1795 

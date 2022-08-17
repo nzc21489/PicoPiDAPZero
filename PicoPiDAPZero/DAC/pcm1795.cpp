@@ -24,34 +24,50 @@
  */
 
 #include "pcm1795.h"
+#include "pico_i2c.h"
 
-#include "hardware/i2c.h"
-
-#define i2c_port_pcm7195 i2c1
-
-uint8_t pcm1795_filter = 0;
-
-int send_i2c(uint8_t reg, uint8_t value)
+pcm1795::pcm1795()
 {
-    uint8_t reg_data[2];
-    reg_data[0] = reg;
-    reg_data[1] = value;
-    int bw = i2c_write_blocking(i2c_port_pcm7195, pcm1795_address, &reg_data[0], 2, false);
-    return bw;
+    
 }
 
-void pcm1795_setup()
+void pcm1795::set_dac_address(uint8_t address)
+{
+    dac_address = address;
+}
+
+void pcm1795::set_i2c_port(i2c_inst_t i2c_port)
+{
+    dac_i2c_port = i2c_port;
+}
+
+void pcm1795::setup()
 {
     sleep_ms(50);
     
     // set format I2S 32bit, Attenuation enable
-    send_i2c(18, 0b11000000);
+    write_i2c(dac_i2c_port, dac_address, 18, 0b11000000);
 
-    change_volume_pcm1795(vol_min);
-    send_i2c(18, 0b11000000);
+    set_volume(0);
+    write_i2c(dac_i2c_port, dac_address, 18, 0b11000000);
 }
 
-void change_volume_pcm1795(uint8_t vol)
+void pcm1795::mute()
+{
+    // not implemented yet
+}
+
+void pcm1795::unmute()
+{
+    // not implemented yet
+}
+
+void pcm1795::set_bit_freq(uint8_t bit, uint32_t freq)
+{
+
+}
+
+bool pcm1795::set_volume(uint8_t vol)
 {
     uint8_t vol_value_send = ((vol_max - vol_min) * vol / 100) + vol_min;
 
@@ -59,16 +75,36 @@ void change_volume_pcm1795(uint8_t vol)
     {
         vol_value_send = vol_min;
     }
-    send_i2c(16, vol_value_send);
-    send_i2c(17, vol_value_send);
-    send_i2c(18, 0b11000000); // update volume
+    write_i2c(dac_i2c_port, dac_address, 16, vol_value_send);
+    write_i2c(dac_i2c_port, dac_address, 17, vol_value_send);
+    write_i2c(dac_i2c_port, dac_address, 18, 0b11000000); // update volume
+    return true;
 }
- 
-void pcm1795_change_digital_filter(int digital_filter)
+
+uint8_t pcm1795::get_digital_filter_num()
 {
-    if ((digital_filter == 0) || (digital_filter == 1))
+    return digital_filter_num;
+}
+
+string pcm1795::get_digital_filter_strs(uint8_t filter_num)
+{
+    return digital_filter_strs[filter_num];
+}
+
+void pcm1795::set_digital_filter(int filter_num)
+{
+    if (filter_num < digital_filter_num)
     {
-        // digital filter
-        send_i2c(19, (digital_filter << 1));
+        write_i2c(dac_i2c_port, dac_address, 19, (digital_filter_nums[filter_num] << 1));
     }
-} 
+}
+
+string pcm1795::get_digital_filter_text_name()
+{
+    return digital_filter_text;
+}
+
+dac_type pcm1795::get_dac()
+{
+    return dac_pcm1795;
+}

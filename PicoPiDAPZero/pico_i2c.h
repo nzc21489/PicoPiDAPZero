@@ -1,4 +1,4 @@
- /*
+/* 
  * The MIT License (MIT)
  *
  * Copyright (c) 2022 nzc21489
@@ -23,12 +23,19 @@
  *
  */
 
-#ifndef VERSION_PICOPIDAP_ZERO_H
-#define VERSION_PICOPIDAP_ZERO_H
+#ifndef PICO_I2C
+#define PICO_I2C
 
-#include <string>
+#include "stdint.h"
+#include "hardware/i2c.h"
+#include <vector>
 using namespace std;
 
-static const string version_picopidap_zero = "         Version 0.2.4";
+void setup_i2c(uint8_t sda, uint8_t scl, i2c_inst_t i2c_port);
+i2c_inst_t get_i2c_port(uint8_t sda, uint8_t scl);
+int read_i2c(i2c_inst_t i2c_port, uint8_t i2c_address, uint8_t reg, uint8_t* data);
+int write_i2c(i2c_inst_t i2c_port, uint8_t i2c_address, uint8_t reg, uint8_t value);
+int write_i2c_multi(i2c_inst_t i2c_port, uint8_t i2c_address, uint8_t *value, int num);
+vector<uint8_t> i2c_bus_scan(i2c_inst_t i2c_port);
 
-#endif // VERSION_PICOPIDAP_ZERO_H
+#endif //PICO_I2C

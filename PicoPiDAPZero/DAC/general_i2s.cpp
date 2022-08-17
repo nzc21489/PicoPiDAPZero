@@ -1,4 +1,4 @@
- /*
+ /* 
  * The MIT License (MIT)
  *
  * Copyright (c) 2022 nzc21489
@@ -23,12 +23,69 @@
  *
  */
 
-#ifndef VERSION_PICOPIDAP_ZERO_H
-#define VERSION_PICOPIDAP_ZERO_H
+#include "general_i2s.h"
 
-#include <string>
-using namespace std;
+general_i2s::general_i2s()
+{
+    
+}
 
-static const string version_picopidap_zero = "         Version 0.2.4";
+void general_i2s::set_dac_address(uint8_t address)
+{
 
-#endif // VERSION_PICOPIDAP_ZERO_H
+}
+
+void general_i2s::set_i2c_port(i2c_inst_t i2c_port)
+{
+    
+}
+
+void general_i2s::setup()
+{
+    
+}
+
+void general_i2s::mute()
+{
+    
+}
+
+void general_i2s::unmute()
+{
+    
+}
+
+void general_i2s::set_bit_freq(uint8_t bit, uint32_t freq)
+{
+
+}
+
+bool general_i2s::set_volume(uint8_t vol)
+{
+    return false;
+}
+
+uint8_t general_i2s::get_digital_filter_num()
+{
+    return 0;
+}
+
+string general_i2s::get_digital_filter_strs(uint8_t filter_num)
+{
+    return "  No digital filter available";
+}
+
+void general_i2s::set_digital_filter(int filter_num)
+{
+
+}
+
+string general_i2s::get_digital_filter_text_name()
+{
+    return "";
+}
+
+dac_type general_i2s::get_dac()
+{
+    return dac_general_i2s;
+}

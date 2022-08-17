@@ -23,36 +23,20 @@
  *
  */
 
-#ifndef PCM1795
-#define PCM1795
+#ifndef I2C_DEVICES
+#define I2C_DEVICES
 
 #include "stdint.h"
+#include "hardware/i2c.h"
+#include <vector>
 #include <string>
+#include "version_picopidap_zero.h"
+#include "dac.h"
 
 using namespace std;
 
-#define pcm1795_address 0x4C
-#define vol_min 0b00001110
-#define vol_max 0b11111111
+extern string dac_data_string[12];
 
-#define pmp_digital_filter "PCM1795.txt"
+void get_i2c_devices(i2c_inst_t i2c_port, uint8_t* i2c_device_data, bool i2c_bus_internal);
 
-#define digital_filter_num 2
-extern uint8_t DacPlusPro_filter;
-static const uint8_t digital_filter_nums[4] = {
-    1,
-    2,
-    3,
-    7
-};
-
-static const string digital_filter_strs[2] = {
-    "         Sharp roll-off",
-    "         Slow roll-off"
-};
-
-extern void pcm1795_setup();
-extern void change_volume_pcm1795(uint8_t vol);
-extern void pcm1795_change_digital_filter(int digital_filter);
-
-#endif //PCM1795 
+#endif // I2C_DEVICES
