@@ -811,7 +811,7 @@ int main()
     else
     {
         set_si5351(44100);
-        sleep_ms(100);
+        sleep_ms(300);
 #ifdef ModelB
         get_i2c_devices(i2c_port2, i2c_dac_clk, true);
 #else
