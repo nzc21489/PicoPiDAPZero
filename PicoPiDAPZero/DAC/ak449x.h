@@ -65,7 +65,7 @@ private:
     const string digital_filter_strs[6] = {
     "         Sharp roll-off",
     "         Slow roll-off",
-    "  hort delay sharp roll-off",
+    "  Short delay sharp roll-off",
     "  Short delay slow roll-off",
     "     Super Slow roll-off",
     "  Low dispersion Short delay"

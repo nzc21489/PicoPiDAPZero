@@ -592,6 +592,10 @@ void read_digital_filter()
             }
             f_close(&fil);
         }
+        else
+        {
+            digital_filter = -1;
+        }
     }
 }
 

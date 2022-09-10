@@ -238,7 +238,7 @@ volatile int jpeg_file_size_pre = 0;
 
 volatile bool usb_dac_mode = false;
 
-int digital_filter = 0;
+int digital_filter = -1;
 
 int playing_mode = playing_mode_normal;
 volatile bool repeat_next = false;
@@ -946,11 +946,10 @@ void home_select()
             while(digital_filter_read)
             {
             }
-            if (digital_filter < 0)
+            if (digital_filter >= 0)
             {
-                digital_filter = 0;
+                dac1->set_digital_filter(digital_filter);
             }
-            dac1->set_digital_filter(digital_filter);
         }
 
         usb_dac_mode = true;
@@ -1668,11 +1667,10 @@ void core1()
             while(digital_filter_read)
             {
             }
-            if (digital_filter < 0)
+            if (digital_filter >= 0)
             {
-                digital_filter = 0;
+                dac1->set_digital_filter(digital_filter);
             }
-            dac1->set_digital_filter(digital_filter);
         }
 
         home_screen_mode = false;
