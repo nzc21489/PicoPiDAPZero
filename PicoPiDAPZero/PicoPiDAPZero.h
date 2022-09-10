@@ -193,13 +193,8 @@ extern string jpeg_file_name;
 
 extern dac *dac1;
 
-#ifdef DAC_FPGA_DeltaSigma
-#define mclk_44_1k (22579200 * 4)
-#define mclk_48k (24576000 * 4)
-#else
-#define mclk_44_1k (22579200 * 1)
-#define mclk_48k (24576000 * 1)
-#endif
+extern uint32_t mclk_44_1k;
+extern uint32_t mclk_48k;
 
 #ifdef i2c_sda_pin
 #define sda_pin i2c_sda_pin
@@ -212,6 +207,29 @@ extern dac *dac1;
 #else
 #define scl_pin 3
 #endif
+
+#ifdef ModelB
+#ifdef i2c_sda_pin2
+#define sda_pin2 i2c_sda_pin2
+#else
+#define sda_pin2 24
+#endif
+
+#ifdef i2c_scl_pin2
+#define scl_pin2 i2c_scl_pin2
+#else
+#define scl_pin2 25
+#endif
+
+#ifdef SW1Pin
+#define sw1_pin SW1Pin
+#else
+#define sw1_pin 23
+
+extern bool softvol;
+#endif
+
+#endif // ModelB
 
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();

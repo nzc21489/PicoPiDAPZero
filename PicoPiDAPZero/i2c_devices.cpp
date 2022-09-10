@@ -32,7 +32,11 @@
 
 string dac_data_string[12] = {
     "",
+#ifdef ModelB
+    "    Pico Pi DAP Zero Model B",
+#else
     "        Pico Pi DAP Zero",
+#endif
     "            I2S DAC",
     "",
     version_picopidap_zero,

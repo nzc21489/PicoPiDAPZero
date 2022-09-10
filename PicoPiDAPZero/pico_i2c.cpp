@@ -82,10 +82,9 @@ vector<uint8_t> i2c_bus_scan(i2c_inst_t i2c_port)
     for (int addr = 0; addr < 128; addr++)
     {
         uint8_t read_data;
-        sleep_ms(1);
         if (((addr & 0x78) != 0) && ((addr & 0x78) != 0x78))
         {
-            int ret = i2c_read_blocking(&i2c_port, addr, &read_data, 1, false);
+            int ret = i2c_read_timeout_us(&i2c_port, addr, &read_data, 1, false, 1000);
             if (ret == 1)
             {
                 i2c_devices.push_back(addr);

@@ -136,7 +136,11 @@ volatile bool display_on = true;
 
 string information_string[12] = {
     "",
+#ifdef ModelB
+    "    Pico Pi DAP Zero Model B",
+#else
     "        Pico Pi DAP Zero",
+#endif
     "",
     "",
     version_picopidap_zero,
@@ -238,6 +242,18 @@ int digital_filter = 0;
 
 int playing_mode = playing_mode_normal;
 volatile bool repeat_next = false;
+
+#ifdef DAC_FPGA_DeltaSigma
+uint32_t mclk_44_1k  = (22579200 * 4);
+uint32_t mclk_48k = (24576000 * 4);
+#else
+uint32_t mclk_44_1k = (22579200 * 1);
+uint32_t mclk_48k = (24576000 * 1);
+#endif
+
+#ifdef ModelB
+bool softvol = false;
+#endif
 
 void status_bar_left_update(uint8_t play_mode);
 void status_bar_right_update();

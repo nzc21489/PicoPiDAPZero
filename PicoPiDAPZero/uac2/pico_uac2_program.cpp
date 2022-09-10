@@ -188,6 +188,10 @@ void audio_task_pico(int resolution, int sample_rate)
                 {
                     if (sample_rate == 0)
                     {
+#ifdef ModelB
+                    i2c_inst_t i2c_port2 = get_i2c_port(sda_pin, scl_pin);
+                    setup_i2c(sda_pin, scl_pin, i2c_port2);
+#endif
                         si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
                     }
                     else if (sample_rate % 48000 == 0)
@@ -201,6 +205,10 @@ void audio_task_pico(int resolution, int sample_rate)
                 }
                 else
                 {
+#ifdef ModelB
+                    i2c_inst_t i2c_port1 = get_i2c_port(sda_pin2, scl_pin2);
+                    setup_i2c(sda_pin2, scl_pin2, i2c_port1);
+#endif
                     if (sample_rate == 0)
                     {
                         si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);

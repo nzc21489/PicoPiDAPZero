@@ -33,6 +33,30 @@ pico_enable_stdio_usb(PicoPiDAPZero 1)
 pico_add_extra_outputs(PicoPiDAPZero)
 #-------------------------------------
 
+#-- Pico Pi DAP Zero Model B --
+add_executable(PicoPiDAPZero_ModelB
+        PicoPiDAPZero.cpp
+        PicoPiDAPZero_core1.cpp
+        PicoPiDAPZero_wav.cpp
+        getDirectoryList.cpp
+        split.cpp
+        bmp_shinonome16.cpp
+        usb_serial.c
+        pico_i2c.cpp
+        i2c_devices.cpp
+        )
+
+target_compile_definitions(PicoPiDAPZero_ModelB PRIVATE
+        ModelB=1
+)
+
+target_link_libraries(PicoPiDAPZero_ModelB pico_stdlib hardware_i2c hardware_adc ESP8266AudioPico pico_tag tft_espi TJpg_Decoder hardware_pwm si5351 tinyusb_device tinyusb_board pico_uac2_ModelB dac)
+
+pico_enable_stdio_usb(PicoPiDAPZero_ModelB 1)
+
+pico_add_extra_outputs(PicoPiDAPZero_ModelB)
+#-------------------------------------
+
 #-- Pico Pi DAP Zero External clock --
 add_executable(PicoPiDAPZero_EXT_CLK
         PicoPiDAPZero.cpp

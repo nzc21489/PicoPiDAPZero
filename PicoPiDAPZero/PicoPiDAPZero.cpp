@@ -55,7 +55,11 @@ volatile uint8_t volume_pre = 0;
 void change_volume(uint8_t vol)
 {
 #ifndef SOFT_VOL
+#ifdef ModelB
+    if (dac1->set_volume(vol) && (!softvol))
+#else
     if (dac1->set_volume(vol))
+#endif
     {
         if (out)
         {
@@ -94,13 +98,25 @@ void set_si5351(uint32_t sample_rate)
     {
         if (dac1->get_dac() == dac_pcm512x)
         {
+#ifdef ModelB
+            i2c_inst_t i2c_port1 = get_i2c_port(sda_pin2, scl_pin2);
+            setup_i2c(sda_pin2, scl_pin2, i2c_port1);
             si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
+            i2c_inst_t i2c_port2 = get_i2c_port(sda_pin, scl_pin);
+            setup_i2c(sda_pin, scl_pin, i2c_port2);
+#else
+            si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
+#endif
             return;
         }
     }
 
     if (external_si5351)
     {
+#ifdef ModelB
+        i2c_inst_t i2c_port2 = get_i2c_port(sda_pin, scl_pin);
+        setup_i2c(sda_pin, scl_pin, i2c_port2);
+#endif
         if (sample_rate == 0)
         {
             si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
@@ -116,6 +132,10 @@ void set_si5351(uint32_t sample_rate)
     }
     else
     {
+#ifdef ModelB
+        i2c_inst_t i2c_port1 = get_i2c_port(sda_pin2, scl_pin2);
+        setup_i2c(sda_pin2, scl_pin2, i2c_port1);
+#endif
         if (sample_rate == 0)
         {
             si5351_set_clock(si5351_i2c_port, 0x60, 0, 0, 0);
@@ -130,6 +150,10 @@ void set_si5351(uint32_t sample_rate)
             si5351_set_clock(si5351_i2c_port, 0x60, -mclk_44_1k, -sample_rate * 64, sample_rate);
         }
     }
+#ifdef ModelB
+    i2c_inst_t i2c_port2 = get_i2c_port(sda_pin, scl_pin);
+    setup_i2c(sda_pin, scl_pin, i2c_port2);
+#endif
 }
 
 bool init_sd()
@@ -708,6 +732,41 @@ void next_music_repeat_all()
 
 int main()
 {
+#ifdef ModelB
+    i2c_inst_t i2c_port1 = get_i2c_port(sda_pin2, scl_pin2);
+    setup_i2c(sda_pin2, scl_pin2, i2c_port1);
+    uint8_t i2c_dac_clk[3]; // [0] : 0 -> no clock, 1 -> Si5351A, [1] : DAC, [2] : DAC Address
+
+    get_i2c_devices(i2c_port1, i2c_dac_clk, true);
+
+    for (int i = 0; i < 3; i++)
+    {
+        i2c_dac_clk[i] = 0;
+    }
+
+    i2c_inst_t i2c_port2 = get_i2c_port(sda_pin, scl_pin);
+    setup_i2c(sda_pin, scl_pin, i2c_port2);
+
+    get_i2c_devices(i2c_port2, i2c_dac_clk, false);
+
+    if (i2c_dac_clk[0] == 1)
+    {
+        setup_i2c(sda_pin2, scl_pin2, i2c_port1);
+        si5351_i2c_port = i2c_port1;
+        set_si5351(0);
+        external_si5351 = true;
+        setup_i2c(sda_pin, scl_pin, i2c_port2);
+        si5351_i2c_port = i2c_port2;
+    }
+    else
+    {
+        si5351_i2c_port = i2c_port1;
+    }
+
+    gpio_init(sw1_pin);
+    gpio_set_dir(sw1_pin, GPIO_IN);
+    gpio_pull_up(sw1_pin);
+#else
     i2c_inst_t i2c_port1 = get_i2c_port(sda_pin, scl_pin);
     setup_i2c(sda_pin, scl_pin, i2c_port1);
     uint8_t i2c_dac_clk[3]; // [0] : 0 -> no clock, 1 -> Si5351A, [1] : DAC, [2] : DAC Address
@@ -720,12 +779,16 @@ int main()
 #else
     get_i2c_devices(i2c_port1, i2c_dac_clk, true);
 #endif
-
+#endif // ModelB
     if (i2c_dac_clk[1] == dac_cs4398)
     {
         dac1 = new cs4398();
         dac1->set_dac_address(i2c_dac_clk[2]);
+#ifdef ModelB
+        dac1->set_i2c_port(i2c_port2);
+#else
         dac1->set_i2c_port(i2c_port1);
+#endif
         dac1->setup();
         set_si5351(44100);
     }
@@ -733,7 +796,11 @@ int main()
     {
         dac1 = new pcm512x();
         dac1->set_dac_address(i2c_dac_clk[2]);
+#ifdef ModelB
+        dac1->set_i2c_port(i2c_port2);
+#else
         dac1->set_i2c_port(i2c_port1);
+#endif
         set_si5351(0);
         dac1->setup();
     }
@@ -741,11 +808,15 @@ int main()
     {
         set_si5351(44100);
         sleep_ms(100);
+#ifdef ModelB
+        get_i2c_devices(i2c_port2, i2c_dac_clk, true);
+#else
 #ifdef EXT_CLK
         get_i2c_devices(i2c_port1, i2c_dac_clk, false);
 #else
         get_i2c_devices(i2c_port1, i2c_dac_clk, true);
 #endif
+#endif // ModelB
 
         if (i2c_dac_clk[1] == dac_pcm1795)
         {
@@ -764,9 +835,31 @@ int main()
         }
 
         dac1->set_dac_address(i2c_dac_clk[2]);
+#ifdef ModelB
+        dac1->set_i2c_port(i2c_port2);
+#else
         dac1->set_i2c_port(i2c_port1);
+#endif
         dac1->setup();
     }
+
+#ifdef ModelB
+    if (!gpio_get(sw1_pin))
+    {
+        if (dac1->get_dac() == dac_general_i2s)
+        {
+            dac_data_string[2] = "         FPGA DeltaSigma";
+            mclk_44_1k *= 4;
+            mclk_48k *= 4;
+        }
+        else
+        {
+            softvol = true;
+            dac_data_string[2].erase(dac_data_string[2].begin(), dac_data_string[2].begin() + 3);
+            dac_data_string[2] += " SoftVol";
+        }
+    }
+#endif
 
     set_sys_clock_pll(1596 * MHZ, 6, 2); // 133MHz
 
