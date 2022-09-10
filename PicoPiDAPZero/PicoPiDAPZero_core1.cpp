@@ -965,7 +965,7 @@ void home_select()
         tft.fillRect(0, status_bar_height, tft.width(), tft.height() - status_bar_height, TFT_BLACK);
         information_tft();
     }
-    else if (player_mode == dac) // system
+    else if (player_mode == dac) // dac setting
     {
         if (dac1->get_digital_filter_num() > 0)
         {
@@ -979,6 +979,7 @@ void home_select()
             }
         }
 
+        information_string[2] = dac_data_string[2];
         information_string[6] = dac1->get_digital_filter_strs(digital_filter);
         dac_display_first_time = true;
         information_tft();
