@@ -207,7 +207,11 @@ uint32_t reboot_count = 0x7fffffff;
 bool system_first_time = false;
 bool dac_display_first_time = false;
 
+#ifdef ModelB
+static const uint8_t brightness[5] = {100, 25, 18, 13, 8};
+#else
 static const uint8_t brightness[5] = {100, 45, 42, 38, 35};
+#endif // ModelB
 
 uint16_t w_jpeg = 0, h_jpeg = 0;
 
