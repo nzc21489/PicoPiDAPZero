@@ -760,19 +760,19 @@ void status_bar_left_update(uint8_t play_mode)
 
     case playing_mode_repeat_1:
         spr_status_bar[status_bar_left].loadFont(num_font);
-        spr_status_bar[status_bar_left].print(" R1");
+        spr_status_bar[status_bar_left].print(" Rp1");
         spr_status_bar[status_bar_left].unloadFont();
         break;
 
     case playing_mode_repeat_directory:
         spr_status_bar[status_bar_left].loadFont(num_font);
-        spr_status_bar[status_bar_left].print(" RD");
+        spr_status_bar[status_bar_left].print(" RpD");
         spr_status_bar[status_bar_left].unloadFont();
         break;
 
     case playing_mode_repeat_all:
         spr_status_bar[status_bar_left].loadFont(num_font);
-        spr_status_bar[status_bar_left].print(" RA");
+        spr_status_bar[status_bar_left].print(" RpA");
         spr_status_bar[status_bar_left].unloadFont();
         break;
 
