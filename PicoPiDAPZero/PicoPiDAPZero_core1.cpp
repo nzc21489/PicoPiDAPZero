@@ -2281,14 +2281,7 @@ void core1()
                 playing_mode++;
                 playing_mode %= playing_mode_num;
                 playing_mode_write = true;
-                if (music_playing)
-                {
-                    status_bar_left_update(true);
-                }
-                else
-                {
-                    status_bar_left_update(false);
-                }
+                status_bar_left_update(!pause);
             }
 
             if (key_num < 11)
