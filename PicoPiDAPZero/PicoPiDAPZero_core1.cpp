@@ -247,6 +247,8 @@ int digital_filter = -1;
 int playing_mode = playing_mode_normal;
 volatile bool repeat_next = false;
 
+volatile bool wait_core1_setup = true;
+
 #ifdef DAC_FPGA_DeltaSigma
 uint32_t mclk_44_1k  = (22579200 * 4);
 uint32_t mclk_48k = (24576000 * 4);
@@ -1663,6 +1665,8 @@ void core1()
     {
         dac1->set_digital_filter(digital_filter);
     }
+
+    wait_core1_setup = false;
 
     if ((!gpio_get(buttons_pin[usb_dac_button1])) || (!gpio_get(buttons_pin[usb_dac_button2])))
     {

@@ -197,6 +197,8 @@ extern dac *dac1;
 extern uint32_t mclk_44_1k;
 extern uint32_t mclk_48k;
 
+extern volatile bool wait_core1_setup;
+
 #ifdef i2c_sda_pin
 #define sda_pin i2c_sda_pin
 #else

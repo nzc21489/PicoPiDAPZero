@@ -903,6 +903,10 @@ int main()
     stack_core1 = new uint32_t[stack_core1_size];
     multicore_launch_core1_with_stack(core1, stack_core1, stack_core1_size);
 
+    while(wait_core1_setup)
+    {
+    }
+    
     // audio decoder source
     source = new AudioFileSourceSD();
 
