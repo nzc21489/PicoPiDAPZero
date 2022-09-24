@@ -80,7 +80,7 @@ void get_i2c_devices(i2c_inst_t i2c_port, uint8_t* i2c_device_data, bool i2c_bus
             sprintf(str_addr_hex, "0x%x", i2c_devices[i]);
             dac_data_string[9] += str_addr_hex;
         }
-        else if (i2c_devices[i] >= 0x10 && i2c_devices[i] < 0x13) // AK449X
+        else if (i2c_devices[i] >= 0x10 && i2c_devices[i] <= 0x13) // AK449X
         {
             i2c_device_data[1] = dac_ak449x;
             i2c_device_data[2] = i2c_devices[i];
@@ -89,7 +89,16 @@ void get_i2c_devices(i2c_inst_t i2c_port, uint8_t* i2c_device_data, bool i2c_bus
             sprintf(str_addr_hex, "0x%x", i2c_devices[i]);
             dac_data_string[8] += str_addr_hex;
         }
-        else if (i2c_devices[i] >= 0x4c && i2c_devices[i] < 0x4f) // PCM512X or PCM1795 or CS4398
+        else if (i2c_devices[i] >= 0x1C && i2c_devices[i] <= 0x1F) // BD34352
+        {
+            i2c_device_data[1] = dac_bd34352;
+            i2c_device_data[2] = i2c_devices[i];
+            dac_data_string[2] = "             BD34352";
+            dac_data_string[8] = "         BD34352 : ";
+            sprintf(str_addr_hex, "0x%x", i2c_devices[i]);
+            dac_data_string[8] += str_addr_hex;
+        }
+        else if (i2c_devices[i] >= 0x4c && i2c_devices[i] <= 0x4f) // PCM512X or PCM1795 or CS4398
         {
             uint8_t data_tmp;
             read_i2c(i2c_port, i2c_devices[i], 1, &data_tmp);

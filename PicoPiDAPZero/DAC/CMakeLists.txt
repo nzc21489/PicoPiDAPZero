@@ -5,6 +5,7 @@ add_library(dac STATIC
     pcm512x.cpp
     pcm1795.cpp
     ak449x.cpp
+    bd34352.cpp
     general_i2s.cpp
 )
 

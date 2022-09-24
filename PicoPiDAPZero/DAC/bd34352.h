@@ -23,37 +23,52 @@
  *
  */
 
-#pragma once
+#ifndef BD34352
+#define BD34352
+
+#include "stdint.h"
 #include <string>
-#include <string.h>
-#include <cstring>
+#include "hardware/i2c.h"
+#include "dac.h"
+
 using namespace std;
 
-enum dac_type
+class bd34352 : public dac
 {
-    dac_general_i2s = 0,
-    dac_cs4398,
-    dac_DacPlusPro,
-    dac_pcm512x,
-    dac_pcm1795,
-    dac_ak449x,
-    dac_bd34352,
+private:
+    static const uint8_t vol_max = 0b00000000;
+    static const uint8_t vol_min = 0b11011100;
+    uint8_t dac_address = 0x1C;
+    uint32_t sampling_rate = 44100;
+    uint8_t digital_filter = 0;
+    i2c_inst_t dac_i2c_port = *i2c0;
+    const string digital_filter_text = "digital_filter_BD34352.txt";
+    const uint8_t digital_filter_num = 2;
+    const uint8_t digital_filter_nums[2] = {
+        0,
+        1,
+    };
+    const string digital_filter_strs[2] = {
+    "         Sharp roll-off",
+    "         Slow roll-off"
+    };
+
+    uint8_t get_bck_divider(uint8_t bit, uint32_t freq);
+
+public:
+    void set_dac_address(uint8_t address);
+    void set_i2c_port(i2c_inst_t i2c_port);
+    void setup();
+    void mute();
+    void unmute();
+    void set_bit_freq(uint8_t bit, uint32_t freq);
+    bool set_volume(uint8_t vol);
+    uint8_t get_digital_filter_num();
+    string get_digital_filter_strs(uint8_t filter_num);
+    void set_digital_filter(int filter_num);
+    string get_digital_filter_text_name();
+    dac_type get_dac();
+    bd34352();
 };
 
-class dac
-{
-public:
-    virtual void set_dac_address(uint8_t address);
-    virtual void set_i2c_port(i2c_inst_t i2c_port);
-    virtual void setup();
-    virtual void mute();
-    virtual void unmute();
-    virtual void set_bit_freq(uint8_t bit, uint32_t freq);
-    virtual bool set_volume(uint8_t vol);
-    virtual uint8_t get_digital_filter_num();
-    virtual string get_digital_filter_strs(uint8_t filter_num);
-    virtual void set_digital_filter(int digital_filter);
-    virtual string get_digital_filter_text_name();
-    virtual dac_type get_dac();
-    virtual ~dac() = default;
-};
+#endif // BD34352

@@ -79,6 +79,7 @@
 #include "pcm512x.h"
 #include "pcm1795.h"
 #include "ak449x.h"
+#include "bd34352.h"
 #include "dac.h"
 
 #include "version_picopidap_zero.h"

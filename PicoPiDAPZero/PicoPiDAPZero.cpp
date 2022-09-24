@@ -813,7 +813,7 @@ int main()
         set_si5351(44100);
         sleep_ms(300);
 #ifdef ModelB
-        get_i2c_devices(i2c_port2, i2c_dac_clk, true);
+        get_i2c_devices(i2c_port2, i2c_dac_clk, false);
 #else
 #ifdef EXT_CLK
         get_i2c_devices(i2c_port1, i2c_dac_clk, false);
@@ -829,6 +829,10 @@ int main()
         else if (i2c_dac_clk[1] == dac_ak449x)
         {
             dac1 = new ak449x();
+        }
+        else if (i2c_dac_clk[1] == dac_bd34352)
+        {
+            dac1 = new bd34352();
         }
         else
         {
