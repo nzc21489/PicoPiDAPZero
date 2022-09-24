@@ -58,7 +58,10 @@ bool si5351_set_clock(i2c_inst_t i2c_port, uint8_t i2c_address, int clock0, int 
     }
     if (clock1 < 0)
     {
-        clock_invertion[1] = 0x10;
+        if (clock1 >= -64 * 96000)
+        {
+            clock_invertion[1] = 0x10;
+        }
         clock1 *= -1;
     }
     if (clock2 < 0)
