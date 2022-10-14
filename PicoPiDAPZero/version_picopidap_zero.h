@@ -29,6 +29,6 @@
 #include <string>
 using namespace std;
 
-static const string version_picopidap_zero = "         Version 0.2.4";
+static const string version_picopidap_zero = "         Version 0.3.0";
 
 #endif // VERSION_PICOPIDAP_ZERO_H
