@@ -49,8 +49,15 @@ string dac_data_string[12] = {
     ""  // Other : Address (Address ...)
 };
 
+bool mach_xo2 = false;
+
 void get_i2c_devices(i2c_inst_t i2c_port, uint8_t* i2c_device_data, bool i2c_bus_internal)
 {
+    if (mach_xo2)
+    {
+        return;
+    }
+    
     vector<uint8_t> i2c_devices = i2c_bus_scan(i2c_port);
 
     for (int i = 0; i < 3; i++)
@@ -58,7 +65,7 @@ void get_i2c_devices(i2c_inst_t i2c_port, uint8_t* i2c_device_data, bool i2c_bus
         i2c_device_data[i] = 0;
     }
     uint8_t devices = 0;
-    bool mach_xo2 = false;
+
     bool device_other = false;
     char str_addr_hex[10];
 
